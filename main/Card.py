@@ -1,20 +1,19 @@
-import pygame, sys, os
+import pygame
 from enum import Enum
 from pygame.locals import *
 
 
 class Suit(Enum):
     pik = "black"
-    trefl = "black"
+    trefl = "black1"
     karo = "red"
-    kier = "red"
+    kier = "red1"
 
 
-class Card(pygame.sprite.Sprite):
+class Card(pygame.sprite):
     def __init__(self, sui, rank):
         self.suit = sui
         self.rank = rank
-        dir_path = sys.path[0]
-        img_path = os.path.join(dir_path, "..\images\{0}_{1}.png".format(rank.name, sui.name))
-        self.image = pygame.image.load(img_path)
-        #install PIL package
+        self.front = pygame.image.load( "..\images\{0}_{1}.png".format(rank.name, sui.name))
+        self.x = 20
+        self.y = 20
