@@ -6,12 +6,12 @@ pikuldorota     16 Nov, 2016    Init version
 pikuldorota     26 Nov, 2016    Add card coordinates
 pikuldorota      5 Dec, 2016    Change reaction to move
 pikuldorota      6 Dec, 2016    Add option to show both front and back of the card
+pikuldorota     11 Dec, 2016    Refactor it to make all class fields private, getters and setters created for them
 """
 import pygame
 from enum import Enum
 from pygame.transform import smoothscale
 from Field import back
-from pygame.locals import *
 
 
 class Suit(Enum):
@@ -25,34 +25,50 @@ class Suit(Enum):
 class Card(pygame.sprite.Sprite):
     """Class for representing each card"""
     def __init__(self, sui, rank, x, y):
-        self.suit = sui
-        self.rank = rank
-        self.front = pygame.image.load("..\images\{0}_{1}.png".format(rank.name, sui.name))
-        self.x = x
-        self.y = y
-        self.isactive = False
-        self.isShown = False
+        self.__suit = sui
+        self.__rank = rank
+        self.__front = pygame.image.load("..\images\{0}_{1}.png".format(rank.name, sui.name))
+        self.__x = x
+        self.__y = y
+        self.__isActive = False
+        self.__isShown = False
 
     def update(self):
         """Changes position after move"""
-        mpos = pygame.mouse.get_pos()
-        rect = self.front.get_rect()
-        if rect.collidepoint(mpos):
-            self.isactive = True
+        mouse_position = pygame.mouse.get_pos()
+        rect = pygame.Rect(self.__x, self.__y, 57, 89)
+        if rect.collidepoint(mouse_position):
+            self.__isActive = True
 
     def draw(self, screen):
         """Show card on the screen"""
-        if self.isactive:
-            pygame.draw.rect(screen, (245, 245, 245), (self.x-2, self.y-2, 61, 93))  # (205,133,63)
-        if self.isShown:
-            screen.blit(smoothscale(self.front, (57, 89)), (self.x, self.y))
+        if self.__isActive:
+            pygame.draw.rect(screen, (245, 245, 245), (self.__x - 2, self.__y - 2, 61, 93))  # (205,133,63)
+        if self.__isShown:
+            screen.blit(smoothscale(self.__front, (57, 89)), (self.__x, self.__y))
         else:
-            screen.blit(smoothscale(back, (57, 89)), (self.x, self.y))
+            screen.blit(smoothscale(back, (57, 89)), (self.__x, self.__y))
 
     def change(self, x, y):
         """Changes card positions"""
-        self.x = x
-        self.y = y
+        self.__x = x
+        self.__y = y
 
-    def show_hide(self):
-        self.isShown = not self.isShown
+    def show(self):
+        """Method to make card visible"""
+        self.__isShown = True
+
+    def hide(self):
+        """Method to hide card"""
+        self.__isShown = False
+
+    def change_active(self, is_active=False, opposite=False):
+        """Used when card is click to change it's active field"""
+        if opposite:
+            self.__isActive = not self.__isActive
+        else:
+            self.__isActive = is_active
+
+    def is_active(self):
+        """Returns true when card is now chosen to be used and false otherwise"""
+        return self.__isActive
