@@ -25,6 +25,10 @@ def klondike(deck):
     fields.append(Stack(335, 20))
     fields.append(Stack(398, 20))
 
+    return klondike_shuffle(fields, deck)
+
+
+def klondike_shuffle(fields, deck):
     fields[0].add(deck[:24])
 
     deck[24].show()

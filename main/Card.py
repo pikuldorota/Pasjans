@@ -33,13 +33,6 @@ class Card(pygame.sprite.Sprite):
         self.__isActive = False
         self.__isShown = False
 
-    def update(self):
-        """Changes position after move"""
-        mouse_position = pygame.mouse.get_pos()
-        rect = pygame.Rect(self.__x, self.__y, 57, 89)
-        if rect.collidepoint(mouse_position):
-            self.__isActive = True
-
     def draw(self, screen):
         """Show card on the screen"""
         if self.__isActive:
@@ -72,3 +65,21 @@ class Card(pygame.sprite.Sprite):
     def is_active(self):
         """Returns true when card is now chosen to be used and false otherwise"""
         return self.__isActive
+
+    def is_shown(self):
+        return self.__isShown
+
+    def red_black(self, card):
+        """Returns true if one card is red and another one is black"""
+        return self.__suit.value.lower() != card.__suit.value.lower()
+
+    def next_lower(self, card):
+        """Returns true if asked card is lower by rank than self one"""
+        return self.__rank.value == card.__rank.value + 1
+
+    def color(self):
+        """Returns color of card"""
+        return self.__suit
+
+    def is_AS(self):
+        return self.__rank.name == "AS"

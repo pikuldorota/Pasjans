@@ -26,7 +26,8 @@ class Application:
         self.__done = False
         self.__screen.fill((75, 175, 60))
         self.__board = []
-        self.__activeCard = None
+        self.__activeCard = []
+        self.__field = None
 
     def load_deck(self):
         """Loads deck of cards from Ace to King for each out of four suits."""
@@ -41,6 +42,11 @@ class Application:
             card.hide()
         self.__board = getattr(Board, choosenPlay)(self.__deck)
 
+    def remove_from_fields(self, card):
+        for field in self.__board:
+            if field.take(card):
+                break
+
     def execute(self):
         """This is the main game loop function."""
         self.load_deck()
@@ -52,11 +58,31 @@ class Application:
                 if event.type == pygame.QUIT:
                     self.__done = True
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    change = False
                     for field in self.__board:
-                        card = field.update(self.__activeCard)
-                        if card is not None:
-                            self.__activeCard = card
-                            break;
+                        (card, fiel) = field.update(self.__activeCard)
+                        if card:
+                            if fiel is not None:
+                                for pole in self.__board:
+                                    pole.take(card)
+                                fiel.add(card)
+                                self.__activeCard = []
+                            else:
+                                self.__activeCard = card
+                            change = True
+                            break
+                        else:
+                            if fiel is not None:
+                                change = True
+                                self.__activeCard = []
+                                break
+
+                    if not change:
+                        if self.__activeCard:
+                            for card in self.__activeCard:
+                                card.change_active(False)
+                        self.__activeCard = []
+
                     self.__screen.fill((75, 175, 60))
                     for field in self.__board:
                         field.draw(self.__screen)
