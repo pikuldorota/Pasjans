@@ -5,6 +5,8 @@ History of modification:
 pikuldorota      5 Dec, 2016    Init version
 pikuldorota      6 Dec, 2016    Add draw function
 pikuldorota     11 Dec, 2016    Refactor to use different classes for different types of fields
+pikuldorota     17 Dec, 2016    Add moving multiple cards
+pikuldorota     17 Dec, 2016    Add new field: Fours
 """
 import pygame
 from pygame.transform import smoothscale
@@ -34,12 +36,24 @@ class Field:
         else:
             self._cards.append(cards)
 
-    def clicked(self, x_moved=0, y_moved=0, x_resized=0, y_resized=0):
+    def clear(self):
+        """Removes all cards from field"""
+        self._cards = []
+
+    def clicked(self, x_moved=0, y_moved=0, y_resized=0):
+        """Used to determine if field was clicked. If multiple cards are chosen, then returns index of clicked one"""
         mouse_position = pygame.mouse.get_pos()
-        rect = pygame.Rect(self._x + x_moved, self._y + y_moved, 57 + x_resized, 89 + y_resized)
+        rect = pygame.Rect(self._x + x_moved, self._y + y_moved, 57, 89 + y_resized * 15)
         if rect.collidepoint(mouse_position):
-            return True
-        return False
+            if y_resized > 0:
+                for i in range(y_resized):
+                    rect = pygame.Rect(self._x + x_moved, self._y + y_moved + i*15, 57, 15)
+                    if rect.collidepoint(mouse_position):
+                        return i + 1
+                return y_resized + 1
+            else:
+                return 1
+        return 0
 
 
 class Deck(Field):
@@ -56,20 +70,12 @@ class Deck(Field):
                 self._cards[self.__index].show()
             else:
                 self.__index = -1
-            if cards:
-                for card in cards:
-                    card.change_active(False)
 
         if self.clicked(x_moved=63):
             if cards and self._cards[self.__index] == cards[-1]:
-                self._cards[self.__index].change_active(opposite=True)
                 if self._cards[self.__index].is_active():
                     return [self._cards[self.__index]], None
             else:
-                self._cards[self.__index].change_active(True)
-                if cards:
-                    for card in cards:
-                        card.change_active(False)
                 return [self._cards[self.__index]], None
         return [], None
 
@@ -90,14 +96,20 @@ class Deck(Field):
                 screen.blit(smoothscale(back, (57, 89)), (self._x, self._y))
 
     def take(self, card):
+        """It removes asked card from field and changes index to show previous card"""
         if len(card) == 1 and card[0] in self._cards:
             self.__index -= 1
             super().take(card)
 
     def add(self, cards):
+        """Adds and shows cards to field"""
         super().add(cards)
         for card in cards:
             card.show()
+
+    def reset(self):
+        """Used when reshuffling to make all cards be covered"""
+        self.__index = -1
 
 
 class Pile(Field):
@@ -109,16 +121,13 @@ class Pile(Field):
             if each.is_shown():
                 i = idx
                 break
-        if self.clicked(y_moved=i * 15, y_resized=(len(self._cards) - i - 1) * 15):
+        idx = self.clicked(y_moved=i * 15, y_resized=len(self._cards) - i - 1)
+        if idx:
             if cards:
-                for card in cards:
-                    card.change_active(False)
                 return self.put(cards)
             else:
                 if self._cards:
-                    for idx in range(i, len(self._cards)):
-                        self._cards[i].change_active(True)
-                    return self._cards[i:], None
+                    return self._cards[idx-1+i:], None
                 return [], self
         return [], None
 
@@ -130,7 +139,6 @@ class Pile(Field):
             if self._cards[-1].red_black(cards[0]) and self._cards[-1].next_lower(cards[0]):
                 return cards, self
             else:
-                self._cards[-1].change_active(True)
                 return [self._cards[-1]], None
         else:
             return cards, self
@@ -150,20 +158,18 @@ class Pile(Field):
 
 
 class Stack(Field):
+    """Field representing one where player puts cards from ace to king in ascending order, all in the same suit"""
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.__color = None
+        self.__suit = None
 
     def update(self, cards):
         """Used to handle mouse click"""
         if self.clicked():
             if cards:
-                for card in cards:
-                    card.change_active(False)
                 return self.put(cards)
             else:
                 if self._cards:
-                    self._cards[-1].change_active(True)
                     return [self._cards[-1]], None
                 return [], self
         return [], None
@@ -175,20 +181,18 @@ class Stack(Field):
             if self._cards:
                 if card == self._cards[-1]:
                     return [], self
-                if self.__color == card.color() and card.next_lower(self._cards[-1]):
+                if self.__suit == card.suit() and card.next_lower(self._cards[-1]):
                     card.change(self._x, self._y)
                     return [card], self
                 else:
-                    self._cards[-1].change_active(True)
                     return [self._cards[-1]], None
             else:
-                if card.is_AS():
+                if card.rank().name == "AS":
                     card.change(self._x, self._y)
-                    self.__color = card.color()
+                    self.__suit = card.suit()
                     return [card], self
                 return [], self
         else:
-            self._cards[-1].change_active(True)
             return [self._cards[-1]], None
 
     def draw(self, screen):
@@ -197,3 +201,23 @@ class Stack(Field):
             screen.blit(smoothscale(field, (57, 89)), (self._x, self._y))
         else:
             self._cards[-1].draw(screen)
+
+
+class Fours(Field):
+    """Field representing one where at most can be four cards. One is put on another only if has the same rank"""
+    def update(self, cards):
+        pass
+
+    def put(self, cards):
+        pass
+
+    def draw(self, screen):
+        """Used to show cards on the screen"""
+        if not self._cards:
+            screen.blit(smoothscale(field, (57, 89)), (self._x + 3*22, self._y))
+        else:
+            i = 3
+            for card in self._cards:
+                card.change(self._x + i * 22, self._y)
+                card.draw(screen)
+                i -= 1

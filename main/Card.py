@@ -7,6 +7,8 @@ pikuldorota     26 Nov, 2016    Add card coordinates
 pikuldorota      5 Dec, 2016    Change reaction to move
 pikuldorota      6 Dec, 2016    Add option to show both front and back of the card
 pikuldorota     11 Dec, 2016    Refactor it to make all class fields private, getters and setters created for them
+pikuldorota     16 Dec, 2016    Add useful getters and methods to compare cards
+pikuldorota     17 Dec, 2016    Replace is_AS function with more useful rank function
 """
 import pygame
 from enum import Enum
@@ -55,18 +57,16 @@ class Card(pygame.sprite.Sprite):
         """Method to hide card"""
         self.__isShown = False
 
-    def change_active(self, is_active=False, opposite=False):
+    def change_active(self, is_active=False):
         """Used when card is click to change it's active field"""
-        if opposite:
-            self.__isActive = not self.__isActive
-        else:
-            self.__isActive = is_active
+        self.__isActive = is_active
 
     def is_active(self):
         """Returns true when card is now chosen to be used and false otherwise"""
         return self.__isActive
 
     def is_shown(self):
+        """Returns true if card is shown"""
         return self.__isShown
 
     def red_black(self, card):
@@ -77,9 +77,10 @@ class Card(pygame.sprite.Sprite):
         """Returns true if asked card is lower by rank than self one"""
         return self.__rank.value == card.__rank.value + 1
 
-    def color(self):
-        """Returns color of card"""
+    def suit(self):
+        """Returns suit of card"""
         return self.__suit
 
-    def is_AS(self):
-        return self.__rank.name == "AS"
+    def rank(self):
+        """Returns rank of card"""
+        return self.__rank
