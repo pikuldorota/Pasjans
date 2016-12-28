@@ -12,8 +12,8 @@ from random import shuffle
 
 def klondike(deck):
     """Creates board for klondike solitaire"""
-    fields = [Deck(20, 45), Pile(20, 149), Pile(83, 149), Pile(146, 149), Pile(209, 149), Pile(272, 149),
-              Pile(335, 149), Pile(398, 149), Stack(209, 45), Stack(272, 45), Stack(335, 45), Stack(398, 45)]
+    fields = [Deck(20, 45), Pile(20, 145), Pile(83, 145), Pile(146, 145), Pile(209, 145), Pile(272, 145),
+              Pile(335, 145), Pile(398, 145), Stack(209, 45), Stack(272, 45), Stack(335, 45), Stack(398, 45)]
 
     return klondike_shuffle(fields, deck)
 
@@ -56,9 +56,21 @@ def klondike_shuffle(fields, deck):
 
 def fifteen_puzzle(deck):
     """Creates board for fifteen puzzle game"""
-    fields = [Fours(25, 35), Fours(175, 35), Fours(325, 35), Fours(25, 130), Fours(175, 130), Fours(325, 130),
-              Fours(25, 225), Fours(175, 225), Fours(325, 225), Fours(25, 320), Fours(175, 320), Fours(325, 320),
-              Fours(25, 415), Fours(175, 415), Fours(325, 415)]
+    fields = [Fours(92, 35),
+              Fours(242, 35),
+              Fours(392, 35),
+              Fours(92, 130),
+              Fours(242, 130),
+              Fours(392, 130),
+              Fours(92, 225),
+              Fours(242, 225),
+              Fours(392, 225),
+              Fours(92, 320),
+              Fours(242, 320),
+              Fours(392, 320),
+              Fours(92, 415),
+              Fours(242, 415),
+              Fours(392, 415)]
 
     return fifteen_puzzle_shuffle(fields, deck)
 
@@ -79,11 +91,27 @@ def fifteen_puzzle_shuffle(fields, deck):
     fields[6].add(deck[24:28])
     fields[7].add(deck[28:32])
     fields[8].add(deck[32:36])
-    fields[9].add(deck[36:40])
+    fields[9].add(deck[36:38])
     fields[10].add(deck[40:44])
     fields[11].add(deck[44:48])
     fields[12].add(deck[48:52])
 
+    return fields
+
+
+def canfield(deck):
+    fields = [Stack(10, 40), Stack(100, 40), Stack(190, 40), Stack(280, 40), Deck(370, 40), Pile(10, 100),
+              Pile(100, 100), Pile(190, 100), Pile(270, 100)]
+    return canfield_shuffle(fields, deck)
+
+
+def canfield_shuffle(fields, deck):
+    clean_and_shuffle(fields, deck)
+    fields[4].add(deck[:48])
+    fields[5].add(deck[48])
+    fields[6].add(deck[49])
+    fields[7].add(deck[50])
+    fields[8].add(deck[51])
     return fields
 
 

@@ -40,17 +40,23 @@ class Field:
         """Removes all cards from field"""
         self._cards = []
 
-    def clicked(self, x_moved=0, y_moved=0, y_resized=0):
+    def clicked(self, x_moved=0, y_moved=0, x_resized=0, y_resized=0):
         """Used to determine if field was clicked. If multiple cards are chosen, then returns index of clicked one"""
         mouse_position = pygame.mouse.get_pos()
-        rect = pygame.Rect(self._x + x_moved, self._y + y_moved, 57, 89 + y_resized * 15)
+        rect = pygame.Rect(self._x + x_moved, self._y + y_moved, 57 + x_resized * 22, 89 + y_resized * 15)
         if rect.collidepoint(mouse_position):
-            if y_resized > 0:
+            if y_resized:
                 for i in range(y_resized):
                     rect = pygame.Rect(self._x + x_moved, self._y + y_moved + i*15, 57, 15)
                     if rect.collidepoint(mouse_position):
                         return i + 1
                 return y_resized + 1
+            elif x_resized:
+                for i in range(x_resized):
+                    rect = pygame.Rect(self._x + 35 - i * 22, self._y + y_moved, 22, 89)
+                    if rect.collidepoint(mouse_position):
+                        return i + 1
+                return x_resized + 1
             else:
                 return 1
         return 0
@@ -121,7 +127,11 @@ class Pile(Field):
             if each.is_shown():
                 i = idx
                 break
-        idx = self.clicked(y_moved=i * 15, y_resized=len(self._cards) - i - 1)
+        if self._cards:
+            resized = len(self._cards) - i - 1
+        else:
+            resized = 0
+        idx = self.clicked(y_moved=i * 15, y_resized=resized)
         if idx:
             if cards:
                 return self.put(cards)
@@ -206,18 +216,38 @@ class Stack(Field):
 class Fours(Field):
     """Field representing one where at most can be four cards. One is put on another only if has the same rank"""
     def update(self, cards):
-        pass
+        idx = self.clicked(x_moved=-(len(self._cards)-1)*22, x_resized=len(self._cards)-1)
+        if idx:
+            if cards:
+                return self.put(cards)
+            else:
+                for card in self._cards[idx:]:
+                    if self._cards[idx].rank() != card.rank():
+                        return [], None
+                return self._cards[idx-1:], None
+        return [], None
 
     def put(self, cards):
-        pass
+        if len(self._cards) + len(cards) > 4:
+            return [], self
+        if self._cards:
+            for card in cards:
+                if card.rank() != self._cards[-1].rank():
+                    return [], self
+            return cards, self
+        else:
+            for card in cards[1:]:
+                if cards[0].rank() != card.rank():
+                    return [], self
+            return cards, self
 
     def draw(self, screen):
         """Used to show cards on the screen"""
         if not self._cards:
-            screen.blit(smoothscale(field, (57, 89)), (self._x + 3*22, self._y))
+            screen.blit(smoothscale(field, (57, 89)), (self._x, self._y))
         else:
-            i = 3
+            i = 0
             for card in self._cards:
-                card.change(self._x + i * 22, self._y)
+                card.change(self._x - i * 22, self._y)
                 card.draw(screen)
-                i -= 1
+                i += 1

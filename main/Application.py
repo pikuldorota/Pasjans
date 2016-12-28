@@ -42,6 +42,7 @@ class Application:
     def load_fields(self, chosen_play):
         """Loads chosen board"""
         self.__chosen_play = chosen_play
+        self.__activeCard = []
         for card in self.__deck:
             card.hide()
         self.__board = getattr(Board, chosen_play)(self.__deck)
@@ -73,12 +74,14 @@ class Application:
         if rect.collidepoint(mouse_position):
             for card in self.__deck:
                 card.hide()
+            self.__activeCard = []
             self.__board = getattr(Board, self.__chosen_play + "_shuffle")(self.__board, self.__deck)
             return True
 
         rect = pygame.Rect(119, 0, 126, 33)
         if rect.collidepoint(mouse_position):
             self.load_fields("fifteen_puzzle")
+            self.__activeCard = []
             return True
 
         return False
@@ -86,7 +89,7 @@ class Application:
     def execute(self):
         """This is the main game loop function."""
         self.load_deck()
-        self.load_fields("klondike")
+        self.load_fields("fifteen_puzzle")
         self.redraw()
         while not self.__done:
             for event in pygame.event.get():
