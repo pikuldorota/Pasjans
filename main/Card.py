@@ -9,6 +9,7 @@ pikuldorota      6 Dec, 2016    Add option to show both front and back of the ca
 pikuldorota     11 Dec, 2016    Refactor it to make all class fields private, getters and setters created for them
 pikuldorota     16 Dec, 2016    Add useful getters and methods to compare cards
 pikuldorota     17 Dec, 2016    Replace is_AS function with more useful rank function
+pikuldorota      7 Jan, 2017    Add is_xml_card function
 """
 import pygame
 from enum import Enum
@@ -84,3 +85,11 @@ class Card(pygame.sprite.Sprite):
     def rank(self):
         """Returns rank of card"""
         return self.__rank
+
+    def is_xml_card(self, card_xml):
+        """Checks if xml node describes this card"""
+        if self.__rank.name != card_xml.getAttribute("rank"):
+            return False
+        if self.__suit.name != card_xml.getAttribute("suit"):
+            return False
+        return True

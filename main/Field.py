@@ -5,8 +5,10 @@ History of modification:
 pikuldorota      5 Dec, 2016    Init version
 pikuldorota      6 Dec, 2016    Add draw function
 pikuldorota     11 Dec, 2016    Refactor to use different classes for different types of fields
-pikuldorota     17 Dec, 2016    Add moving multiple cards
+pikuldorota     16 Dec, 2016    Add moving multiple cards
 pikuldorota     17 Dec, 2016    Add new field: Fours
+pikuldorota     28 Dec, 2016    Finished Fours and update clicked function in Field
+pikuldorota      7 Jan, 2017    Add index getter and setter for Deck
 """
 import pygame
 from pygame.transform import smoothscale
@@ -40,6 +42,10 @@ class Field:
         """Removes all cards from field"""
         self._cards = []
 
+    def show_cards(self):
+        """Returns all cards in field"""
+        return self._cards
+
     def clicked(self, x_moved=0, y_moved=0, x_resized=0, y_resized=0):
         """Used to determine if field was clicked. If multiple cards are chosen, then returns index of clicked one"""
         mouse_position = pygame.mouse.get_pos()
@@ -67,6 +73,14 @@ class Deck(Field):
     def __init__(self, x, y):
         Field.__init__(self, x, y)
         self.__index = -1
+
+    def get_index(self):
+        """Used to return actual index"""
+        return self.__index
+
+    def set_index(self, idx):
+        """Used to set new index"""
+        self.__index = int(idx)
 
     def update(self, cards):
         """Method used to handle click on the field"""
@@ -110,8 +124,11 @@ class Deck(Field):
     def add(self, cards):
         """Adds and shows cards to field"""
         super().add(cards)
-        for card in cards:
-            card.show()
+        if isinstance(cards, list):
+            for card in cards:
+                card.show()
+        else:
+            cards.show()
 
     def reset(self):
         """Used when reshuffling to make all cards be covered"""
@@ -210,34 +227,47 @@ class Stack(Field):
         if not self._cards:
             screen.blit(smoothscale(field, (57, 89)), (self._x, self._y))
         else:
+            self._cards[-1].change(self._x, self._y)
             self._cards[-1].draw(screen)
 
 
 class Fours(Field):
     """Field representing one where at most can be four cards. One is put on another only if has the same rank"""
+    def __init__(self, x, y, rank=None):
+        Field.__init__(self, x, y)
+        self.__rank = rank
+
     def update(self, cards):
-        idx = self.clicked(x_moved=-(len(self._cards)-1)*22, x_resized=len(self._cards)-1)
+        """Used to handle mouse click"""
+        if self._cards:
+            idx = self.clicked(x_moved=-(len(self._cards)-1)*22, x_resized=len(self._cards)-1)
+        else:
+            idx = self.clicked()
         if idx:
             if cards:
                 return self.put(cards)
             else:
-                for card in self._cards[idx:]:
-                    if self._cards[idx].rank() != card.rank():
-                        return [], None
-                return self._cards[idx-1:], None
+                if self.__rank:
+                    return self._cards[-1], None
+                else:
+                    for card in self._cards[idx-1:]:
+                        if self._cards[idx-1].rank().name != card.rank().name:
+                            return [], None
+                    return self._cards[idx-1:], None
         return [], None
 
     def put(self, cards):
+        """Validates and puts cards on field"""
         if len(self._cards) + len(cards) > 4:
             return [], self
         if self._cards:
             for card in cards:
-                if card.rank() != self._cards[-1].rank():
+                if card.rank().name != self._cards[-1].rank().name:
                     return [], self
             return cards, self
         else:
             for card in cards[1:]:
-                if cards[0].rank() != card.rank():
+                if cards[0].rank().name != card.rank().name:
                     return [], self
             return cards, self
 

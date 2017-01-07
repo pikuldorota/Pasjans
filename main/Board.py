@@ -5,6 +5,8 @@ History of modification:
 pikuldorota     11 Dec, 2016    Init version
 pikuldorota     16 Dec, 2016    Change klondike to fit with menu
 pikuldorota     17 Dec, 2016    Add fifteen puzzle
+pikuldorota     28 Dec, 2016    Add canfield and slightly change positions of some fields
+pikuldorota      7 Jan, 2017    Add functions for checking if game was solved
 """
 from Field import Deck, Pile, Stack, Fours
 from random import shuffle
@@ -54,23 +56,19 @@ def klondike_shuffle(fields, deck):
     return fields
 
 
+def klondike_is_finished(fields):
+    """Checks if klondike has been solved"""
+    if len(fields[8].show_cards()) == len(fields[9].show_cards()) ==\
+            len(fields[10].show_cards()) == len(fields[11].show_cards()) == 13:
+        return True
+    return False
+
+
 def fifteen_puzzle(deck):
     """Creates board for fifteen puzzle game"""
-    fields = [Fours(92, 35),
-              Fours(242, 35),
-              Fours(392, 35),
-              Fours(92, 130),
-              Fours(242, 130),
-              Fours(392, 130),
-              Fours(92, 225),
-              Fours(242, 225),
-              Fours(392, 225),
-              Fours(92, 320),
-              Fours(242, 320),
-              Fours(392, 320),
-              Fours(92, 415),
-              Fours(242, 415),
-              Fours(392, 415)]
+    fields = [Fours(92, 35), Fours(242, 35), Fours(392, 35), Fours(92, 130), Fours(242, 130), Fours(392, 130),
+              Fours(92, 225), Fours(242, 225), Fours(392, 225), Fours(92, 320), Fours(242, 320), Fours(392, 320),
+              Fours(92, 415), Fours(242, 415), Fours(392, 415)]
 
     return fifteen_puzzle_shuffle(fields, deck)
 
@@ -91,7 +89,7 @@ def fifteen_puzzle_shuffle(fields, deck):
     fields[6].add(deck[24:28])
     fields[7].add(deck[28:32])
     fields[8].add(deck[32:36])
-    fields[9].add(deck[36:38])
+    fields[9].add(deck[36:40])
     fields[10].add(deck[40:44])
     fields[11].add(deck[44:48])
     fields[12].add(deck[48:52])
@@ -99,13 +97,26 @@ def fifteen_puzzle_shuffle(fields, deck):
     return fields
 
 
+def fifteen_puzzle_is_finished(fields):
+    """Checks if fifteen puzzle has been solved"""
+    for field in fields:
+        cards = field.show_cards()
+        if cards:
+            for card in cards[1:]:
+                if card.rank().name != cards[0].rank().name:
+                    return False
+    return True
+
+
 def canfield(deck):
+    """Creates board for canfield game"""
     fields = [Stack(10, 40), Stack(100, 40), Stack(190, 40), Stack(280, 40), Deck(370, 40), Pile(10, 100),
               Pile(100, 100), Pile(190, 100), Pile(270, 100)]
     return canfield_shuffle(fields, deck)
 
 
 def canfield_shuffle(fields, deck):
+    """Puts card on canfield board"""
     clean_and_shuffle(fields, deck)
     fields[4].add(deck[:48])
     fields[5].add(deck[48])
@@ -115,7 +126,52 @@ def canfield_shuffle(fields, deck):
     return fields
 
 
+def canfield_is_finished(fields):
+    """Checks if canfield has been solved"""
+    return False
+
+
+def clock(deck, ranks):
+    """Creates board for clock patience"""
+    fields = []
+    X = [10,20,30,40,50,60,70,80,90,100,110,120,130]
+    Y = [10,20,30,40,50,60,70,80,90,100,110,120,130]
+    for x, y, rank in zip(X,Y,ranks):
+        fields.append(Fours(10, 20, rank))
+    return fifteen_puzzle_shuffle(fields, deck)
+
+
+def clock_shuffle(fields, deck):
+    """Shuffles cards and put them on clock board"""
+    clean_and_shuffle(fields, deck)
+
+    for card in deck:
+        card.hide()
+
+    fields[0].add(deck[:4])
+    fields[1].add(deck[4:8])
+    fields[2].add(deck[8:12])
+    fields[3].add(deck[12:16])
+    fields[4].add(deck[16:20])
+    fields[5].add(deck[20:24])
+    fields[6].add(deck[24:28])
+    fields[7].add(deck[28:32])
+    fields[8].add(deck[32:36])
+    fields[9].add(deck[36:40])
+    fields[10].add(deck[40:44])
+    fields[11].add(deck[44:48])
+    fields[12].add(deck[48:52])
+
+    return fields
+
+
+def clock_is_finished(fields):
+    """Checks if clock game has been finished"""
+    return False
+
+
 def clean_and_shuffle(fields, deck):
+    """Shuffles deck and removes cards from fields"""
     shuffle(deck)
     for field in fields:
         field.clear()
