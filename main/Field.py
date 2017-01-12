@@ -9,6 +9,7 @@ pikuldorota     16 Dec, 2016    Add moving multiple cards
 pikuldorota     17 Dec, 2016    Add new field: Fours
 pikuldorota     28 Dec, 2016    Finished Fours and update clicked function in Field
 pikuldorota      7 Jan, 2017    Add index getter and setter for Deck
+pikuldorota     12 Jan, 2017    Refactor take method to be more informative
 """
 import pygame
 from pygame.transform import smoothscale
@@ -25,11 +26,14 @@ class Field:
         self._x = x
         self._y = y
 
-    def take(self, cards):
+    def take(self, cards, revel=False):
         """This method is used to remove specified card from the field"""
+        took = False
         for card in cards:
             if card in self._cards:
                 self._cards.remove(card)
+                took = True
+        return took, revel
 
     def add(self, cards):
         """This method is used to add cards to field at the beginning of game"""
@@ -88,8 +92,10 @@ class Deck(Field):
             if self.__index < len(self._cards) - 1:
                 self.__index += 1
                 self._cards[self.__index].show()
+                return [], self
             else:
                 self.__index = -1
+                return [], self
 
         if self.clicked(x_moved=63):
             if cards and self._cards[self.__index] == cards[-1]:
@@ -117,9 +123,12 @@ class Deck(Field):
 
     def take(self, card):
         """It removes asked card from field and changes index to show previous card"""
+        took = False
+        revel = False
         if len(card) == 1 and card[0] in self._cards:
             self.__index -= 1
-            super().take(card)
+            (took, revel) = super().take(card)
+        return took, revel
 
     def add(self, cards):
         """Adds and shows cards to field"""
@@ -182,6 +191,13 @@ class Pile(Field):
                 card.change(self._x, self._y + i)
                 i += 15
                 card.draw(screen)
+
+    def take(self, card):
+        """It removes asked card from field and changes index to show previous card"""
+        (took, revel) = super().take(card)
+        if took and self._cards:
+            revel = not self._cards[-1].is_shown()
+        return took, revel
 
 
 class Stack(Field):

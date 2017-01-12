@@ -11,13 +11,14 @@ pikuldorota     16 Dec, 2016    Add moving multiply cards
 pikuldorota     17 Dec, 2016    Add beta menu
 pikuldorota     28 Dec, 2016    Clean activeCard field when loading new game or shuffling cards
 pikuldorota      7 Jan, 2017    Refactor change game option and add autosave
+pikuldorota     12 Jan, 2017    Add saving moves
 """
 import pygame
 from Card import Card, Suit
 import Board
 from enum import Enum
 import xml.dom.minidom as minidom
-from XMLutils import to_xml, from_xml
+from XMLutils import *
 
 
 class Application:
@@ -53,7 +54,7 @@ class Application:
     def load_fields(self, chosen_play):
         """Loads chosen board"""
         if self.__saved:
-            to_xml(self.__board, self.__saved)
+            game_state_to_xml(self.__board, self.__saved)
             with open("../save_files/{}.xml".format(self.__chosen_play), 'w') as f:
                 self.__saved.writexml(f)
         self.__chosen_play = chosen_play
@@ -66,8 +67,8 @@ class Application:
             self.__board = getattr(Board, chosen_play)(self.__deck)
         self.__saved = minidom.parse("../save_files/{}.xml".format(chosen_play))
         latest = self.__saved.getElementsByTagName("LatestCardPositions")[0]
-        if len(latest.getElementsByTagName("field")):
-            from_xml(self.__board, self.__deck, self.__saved)
+        if len(latest.getElementsByTagName("Field")):
+            game_state_from_xml(self.__board, self.__deck, self.__saved)
 
     def remove_from_fields(self, card):
         """Used to clear board from cards"""
@@ -92,20 +93,29 @@ class Application:
         pygame.display.update()
 
     def check_cards(self):
-        """To do: check for fields being clicked should be here"""
+        """Check if click occured on any card and performs update"""
         for field in self.__board:
             (cards, fiel) = field.update(self.__activeCard)
             if cards:
                 if fiel is not None:
-                    for pole in self.__board:
-                        pole.take(cards)
+                    for i, pole in enumerate(self.__board):
+                        (took, reveled) = pole.take(cards)
+                        if took:
+                            break
                     fiel.add(cards)
+                    if isinstance(pole, Deck):
+                        add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved, index_change="True")
+                    else:
+                        add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved)
                     self.__activeCard = []
                 else:
                     self.__activeCard = cards
                 return True
             else:
                 if fiel is not None:
+                    if isinstance(fiel, Deck):
+                        add_move_to_xml(self.__board.index(fiel), self.__board.index(fiel),
+                                        [], False, self.__saved, index_change="True")
                     self.__activeCard = []
                     return True
         return False
@@ -118,29 +128,34 @@ class Application:
             if rect.collidepoint(mouse_position):
                 self.load_fields("canfield")
                 self.__to_be_changed = False
+                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(96, 0, 67, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("clock")
                 self.__to_be_changed = False
+                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(168, 0, 109, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("fifteen_puzzle")
                 self.__to_be_changed = False
+                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(282, 0, 84, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("klondike")
                 self.__to_be_changed = False
+                clean_moves_xml(self.__saved)
                 return True
         else:
             "New game"
             rect = pygame.Rect(5, 0, 109, 33)
             if rect.collidepoint(mouse_position):
+                clean_moves_xml(self.__saved)
                 for card in self.__deck:
                     card.hide()
                 self.__activeCard = []
@@ -196,7 +211,7 @@ class Application:
         with open("../save_files/last", 'w') as f:
             f.write(self.__chosen_play)
         if self.__saved:
-            to_xml(self.__board, self.__saved)
+            game_state_to_xml(self.__board, self.__saved)
             with open("../save_files/{}.xml".format(self.__chosen_play), 'w') as f:
                 self.__saved.writexml(f)
 
