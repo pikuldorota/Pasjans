@@ -12,6 +12,7 @@ pikuldorota     17 Dec, 2016    Add beta menu
 pikuldorota     28 Dec, 2016    Clean activeCard field when loading new game or shuffling cards
 pikuldorota      7 Jan, 2017    Refactor change game option and add autosave
 pikuldorota     12 Jan, 2017    Add saving moves
+pikuldorota     14 Jan, 2017    Add undo functionality to menu
 """
 import pygame
 from Card import Card, Suit
@@ -103,10 +104,7 @@ class Application:
                         if took:
                             break
                     fiel.add(cards)
-                    if isinstance(pole, Deck):
-                        add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved, index_change="True")
-                    else:
-                        add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved)
+                    add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved)
                     self.__activeCard = []
                 else:
                     self.__activeCard = cards
@@ -115,7 +113,7 @@ class Application:
                 if fiel is not None:
                     if isinstance(fiel, Deck):
                         add_move_to_xml(self.__board.index(fiel), self.__board.index(fiel),
-                                        [], False, self.__saved, index_change="True")
+                                        [], False, self.__saved)
                     self.__activeCard = []
                     return True
         return False
@@ -128,28 +126,24 @@ class Application:
             if rect.collidepoint(mouse_position):
                 self.load_fields("canfield")
                 self.__to_be_changed = False
-                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(96, 0, 67, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("clock")
                 self.__to_be_changed = False
-                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(168, 0, 109, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("fifteen_puzzle")
                 self.__to_be_changed = False
-                clean_moves_xml(self.__saved)
                 return True
 
             rect = pygame.Rect(282, 0, 84, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("klondike")
                 self.__to_be_changed = False
-                clean_moves_xml(self.__saved)
                 return True
         else:
             "New game"
@@ -166,6 +160,13 @@ class Application:
             rect = pygame.Rect(119, 0, 126, 33)
             if rect.collidepoint(mouse_position):
                 self.__to_be_changed = True
+                self.__activeCard = []
+                return True
+
+            "Undo"
+            rect = pygame.Rect(250, 0, 326, 33)
+            if rect.collidepoint(mouse_position):
+                undo_last_move(self.__board, self.__deck, self.__saved)
                 self.__activeCard = []
                 return True
         return False

@@ -10,6 +10,7 @@ pikuldorota     17 Dec, 2016    Add new field: Fours
 pikuldorota     28 Dec, 2016    Finished Fours and update clicked function in Field
 pikuldorota      7 Jan, 2017    Add index getter and setter for Deck
 pikuldorota     12 Jan, 2017    Refactor take method to be more informative
+pikuldorota     14 Jan, 2017    Add hiding last card after undoing last move and remove suit field from stack
 """
 import pygame
 from pygame.transform import smoothscale
@@ -25,6 +26,11 @@ class Field:
         self._cards = []
         self._x = x
         self._y = y
+
+    def hide_last(self):
+        """Hides last card on the field"""
+        if self._cards:
+            self._cards[-1].hide()
 
     def take(self, cards, revel=False):
         """This method is used to remove specified card from the field"""
@@ -132,12 +138,14 @@ class Deck(Field):
 
     def add(self, cards):
         """Adds and shows cards to field"""
-        super().add(cards)
         if isinstance(cards, list):
             for card in cards:
                 card.show()
+            super().add(cards)
         else:
             cards.show()
+            self.__index += 1
+            self._cards.insert(self.__index, cards)
 
     def reset(self):
         """Used when reshuffling to make all cards be covered"""
@@ -202,9 +210,6 @@ class Pile(Field):
 
 class Stack(Field):
     """Field representing one where player puts cards from ace to king in ascending order, all in the same suit"""
-    def __init__(self, x, y):
-        super().__init__(x, y)
-        self.__suit = None
 
     def update(self, cards):
         """Used to handle mouse click"""
@@ -224,7 +229,7 @@ class Stack(Field):
             if self._cards:
                 if card == self._cards[-1]:
                     return [], self
-                if self.__suit == card.suit() and card.next_lower(self._cards[-1]):
+                if self._cards[-1].suit() == card.suit() and card.next_lower(self._cards[-1]):
                     card.change(self._x, self._y)
                     return [card], self
                 else:
@@ -232,7 +237,6 @@ class Stack(Field):
             else:
                 if card.rank().name == "AS":
                     card.change(self._x, self._y)
-                    self.__suit = card.suit()
                     return [card], self
                 return [], self
         else:

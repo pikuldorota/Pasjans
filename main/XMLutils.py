@@ -4,6 +4,7 @@ Created by pikuldorota
 History of modification:
 pikuldorota      7 Jan, 2017    Init version
 pikuldorota     12 Jan, 2017    Add adding and cleaning moves save and rename previous methods
+pikuldorota     14 Jan, 2017    Add undoing last move and removing it from xml
 """
 from Field import Deck
 
@@ -41,11 +42,11 @@ def game_state_from_xml(board, deck, document):
                 card_board.show()
             else:
                 card_board.hide()
-        for idx in field_xml.getElementsByTagName("index"):
+        for idx in field_xml.getElementsByTagName("Index"):
             field_board.set_index(idx.getAttribute("idx"))
 
 
-def add_move_to_xml(idx_from, idx_to, cards, next_card_reveled, document, index_change=None):
+def add_move_to_xml(idx_from, idx_to, cards, next_card_reveled, document):
     """Used to save in memory information about each move and click"""
     moves = document.documentElement.getElementsByTagName("Moves")[0]
     xml_move = document.createElement("Move")
@@ -53,16 +54,38 @@ def add_move_to_xml(idx_from, idx_to, cards, next_card_reveled, document, index_
     xml_move.setAttribute("field_index_from", str(idx_from))
     xml_move.setAttribute("field_index_to", str(idx_to))
     xml_move.setAttribute("next_card_reveled", str(next_card_reveled))
-    if index_change:
-        xml_index = document.createElement("index_changed")
-        xml_index.setAttribute("idx", str(index_change))
-        xml_move.appendChild(xml_index)
     for card in cards:
         xml_card = document.createElement("Card")
         xml_card.setAttribute("rank", card.rank().name)
         xml_card.setAttribute("suit", card.suit().name)
         xml_move.appendChild(xml_card)
     moves.appendChild(xml_move)
+
+
+def undo_last_move(board, deck, document):
+    """Used to undo last move and to remove it from xml"""
+    moves = document.documentElement.getElementsByTagName("Moves")[0]
+    if not moves.getElementsByTagName("Move"):
+        return
+    move = moves.getElementsByTagName("Move")[-1]
+    field_from = board[int(move.getAttribute("field_index_from"))]
+    field_to = board[int(move.getAttribute("field_index_to"))]
+    hide_last = move.getAttribute("next_card_reveled")
+    cards = []
+    for xml_card in move.getElementsByTagName("Card"):
+        card = next((card for card in deck if card.is_xml_card(xml_card)), None)
+        cards.append(card)
+    if cards:
+        if hide_last == "True":
+            field_from.hide_last()
+        field_to.take(cards)
+        if len(cards) == 1:
+            field_from.add(cards[0])
+        else:
+            field_from.add(cards)
+    else:
+        field_from.set_index(field_from.get_index()-1)
+    moves.removeChild(move)
 
 
 def clean_moves_xml(document):
