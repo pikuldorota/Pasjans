@@ -7,6 +7,7 @@ pikuldorota     16 Dec, 2016    Change klondike to fit with menu
 pikuldorota     17 Dec, 2016    Add fifteen puzzle
 pikuldorota     28 Dec, 2016    Add canfield and slightly change positions of some fields
 pikuldorota      7 Jan, 2017    Add functions for checking if game was solved
+pikuldorota     20 Jan, 2017    Add skeletons for algiernian and osmosis patience
 """
 from Field import Deck, Pile, Stack, Fours
 from random import shuffle
@@ -14,8 +15,8 @@ from random import shuffle
 
 def klondike(deck):
     """Creates board for klondike solitaire"""
-    fields = [Deck(20, 45), Pile(20, 145), Pile(83, 145), Pile(146, 145), Pile(209, 145), Pile(272, 145),
-              Pile(335, 145), Pile(398, 145), Stack(209, 45), Stack(272, 45), Stack(335, 45), Stack(398, 45)]
+    fields = [Deck(20, 45), Pile(20, 145), Pile(94, 145), Pile(168, 145), Pile(242, 145), Pile(316, 145),
+              Pile(390, 145), Pile(463, 145), Stack(242, 45), Stack(316, 45), Stack(390, 45), Stack(463, 45)]
 
     return klondike_shuffle(fields, deck)
 
@@ -66,9 +67,11 @@ def klondike_is_finished(fields):
 
 def fifteen_puzzle(deck):
     """Creates board for fifteen puzzle game"""
-    fields = [Fours(92, 35), Fours(242, 35), Fours(392, 35), Fours(92, 130), Fours(242, 130), Fours(392, 130),
-              Fours(92, 225), Fours(242, 225), Fours(392, 225), Fours(92, 320), Fours(242, 320), Fours(392, 320),
-              Fours(92, 415), Fours(242, 415), Fours(392, 415)]
+    fields = [Fours(92, 45), Fours(277, 45), Fours(463, 45),
+              Fours(92, 152), Fours(277, 152), Fours(463, 152),
+              Fours(92, 260), Fours(277, 260), Fours(463, 260),
+              Fours(92, 370), Fours(277, 370), Fours(463, 370),
+              Fours(92, 475), Fours(277, 475), Fours(463, 475)]
 
     return fifteen_puzzle_shuffle(fields, deck)
 
@@ -134,11 +137,11 @@ def canfield_is_finished(fields):
 def clock(deck, ranks):
     """Creates board for clock patience"""
     fields = []
-    X = [10,20,30,40,50,60,70,80,90,100,110,120,130]
-    Y = [10,20,30,40,50,60,70,80,90,100,110,120,130]
+    X = [92, 102, 112, 192, 132, 152, 392, 142, 132, 122, 112, 102, 132]
+    Y = [35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35]
     for x, y, rank in zip(X,Y,ranks):
-        fields.append(Fours(10, 20, rank))
-    return fifteen_puzzle_shuffle(fields, deck)
+        fields.append(Fours(x, y, rank))
+    return clock_shuffle(fields, deck)
 
 
 def clock_shuffle(fields, deck):
@@ -168,6 +171,30 @@ def clock_shuffle(fields, deck):
 def clock_is_finished(fields):
     """Checks if clock game has been finished"""
     return False
+
+
+def algiernian(deck):
+    pass
+
+
+def algiernian_shuffle(fields, deck):
+    pass
+
+
+def algiernian_is_finished(fields):
+    pass
+
+
+def osmosis(deck):
+    pass
+
+
+def osmosis_shuffle(fields, deck):
+    pass
+
+
+def osmosis_is_finished(fields):
+    pass
 
 
 def clean_and_shuffle(fields, deck):

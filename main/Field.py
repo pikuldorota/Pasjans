@@ -103,7 +103,7 @@ class Deck(Field):
                 self.__index = -1
                 return [], self
 
-        if self.clicked(x_moved=63):
+        if self.clicked(x_moved=74):
             if cards and self._cards[self.__index] == cards[-1]:
                 if self._cards[self.__index].is_active():
                     return [self._cards[self.__index]], None
@@ -115,12 +115,12 @@ class Deck(Field):
         """Method used to show deck on the screen"""
         if not self._cards:
             screen.blit(smoothscale(field, (57, 89)), (self._x, self._y))
-            screen.blit(smoothscale(field, (57, 89)), (self._x + 63, self._y))
+            screen.blit(smoothscale(field, (57, 89)), (self._x + 74, self._y))
         else:
             if self.__index == -1:
-                screen.blit(smoothscale(field, (57, 89)), (self._x + 63, self._y))
+                screen.blit(smoothscale(field, (57, 89)), (self._x + 74, self._y))
             else:
-                self._cards[self.__index].change(self._x + 63, self._y)
+                self._cards[self.__index].change(self._x + 74, self._y)
                 self._cards[self.__index].draw(screen)
             if self.__index == len(self._cards) - 1:
                 screen.blit(smoothscale(field, (57, 89)), (self._x, self._y))

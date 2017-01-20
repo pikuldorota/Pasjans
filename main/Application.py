@@ -13,12 +13,15 @@ pikuldorota     28 Dec, 2016    Clean activeCard field when loading new game or 
 pikuldorota      7 Jan, 2017    Refactor change game option and add autosave
 pikuldorota     12 Jan, 2017    Add saving moves
 pikuldorota     14 Jan, 2017    Add undo functionality to menu
+pikuldorota     20 Jan, 2017    Add new menu options
 """
-import pygame
-from Card import Card, Suit
-import Board
-from enum import Enum
 import xml.dom.minidom as minidom
+from enum import Enum
+
+import pygame
+
+import Board
+from Card import Card, Suit
 from XMLutils import *
 
 
@@ -27,7 +30,7 @@ class Application:
     def __init__(self):
         self.__deck = []
         pygame.init()
-        self.__screen = pygame.display.set_mode((475, 510))
+        self.__screen = pygame.display.set_mode((540, 580))
         self.__new_game = pygame.image.load("../images/newgame.png")
         self.__change_game = pygame.image.load("../images/changegame.png")
         self.__undo = pygame.image.load("../images/undo.png")
@@ -35,12 +38,13 @@ class Application:
         self.__clock = pygame.image.load("../images/clock.png")
         self.__fifteen_puzzle = pygame.image.load("../images/fifteen_puzzle.png")
         self.__klondike = pygame.image.load("../images/klondike.png")
+        self.__algiernian = pygame.image.load("../images/algiernian.png")
+        self.__osmosis = pygame.image.load("../images/osmosis.png")
         pygame.display.set_icon(pygame.image.load(r"../images/icon.png"))
         pygame.display.set_caption("Patience")
         self.__done = False
         self.__board = []
         self.__activeCard = []
-        self.__field = None
         self.__chosen_play = ""
         self.__to_be_changed = False
         self.__ranks = Enum("rank", "AS,2,3,4,5,6,7,8,9,10,W,D,K")
@@ -83,10 +87,12 @@ class Application:
         for field in self.__board:
             field.draw(self.__screen)
         if self.__to_be_changed:
-            self.__screen.blit(self.__canfield, (5, 0))
-            self.__screen.blit(self.__clock, (96, 0))
-            self.__screen.blit(self.__fifteen_puzzle, (168, 0))
-            self.__screen.blit(self.__klondike, (282, 0))
+            self.__screen.blit(self.__algiernian, (4, 1))
+            self.__screen.blit(self.__canfield, (95, 1))
+            self.__screen.blit(self.__clock, (182, 1))
+            self.__screen.blit(self.__fifteen_puzzle, (254, 1))
+            self.__screen.blit(self.__klondike, (371, 1))
+            self.__screen.blit(self.__osmosis, (460, 1))
         else:
             self.__screen.blit(self.__new_game, (5, 0))
             self.__screen.blit(self.__change_game, (119, 0))
@@ -122,27 +128,39 @@ class Application:
         """Determines if one of buttons where clicked. If one was then proceed with action"""
         mouse_position = pygame.mouse.get_pos()
         if self.__to_be_changed:
-            rect = pygame.Rect(5, 0, 86, 33)
+            rect = pygame.Rect(4, 1, 88, 33)
+            if rect.collidepoint(mouse_position):
+                self.load_fields("algiernian")
+                self.__to_be_changed = False
+                return True
+
+            rect = pygame.Rect(95, 1, 82, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("canfield")
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(96, 0, 67, 33)
+            rect = pygame.Rect(182, 1, 67, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("clock")
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(168, 0, 109, 33)
+            rect = pygame.Rect(254, 1, 112, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("fifteen_puzzle")
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(282, 0, 84, 33)
+            rect = pygame.Rect(371, 1, 84, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("klondike")
+                self.__to_be_changed = False
+                return True
+
+            rect = pygame.Rect(460, 1, 77, 33)
+            if rect.collidepoint(mouse_position):
+                self.load_fields("osmosis")
                 self.__to_be_changed = False
                 return True
         else:
@@ -164,7 +182,7 @@ class Application:
                 return True
 
             "Undo"
-            rect = pygame.Rect(250, 0, 326, 33)
+            rect = pygame.Rect(250, 0, 76, 33)
             if rect.collidepoint(mouse_position):
                 undo_last_move(self.__board, self.__deck, self.__saved)
                 self.__activeCard = []
