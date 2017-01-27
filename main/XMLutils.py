@@ -3,8 +3,10 @@ Created by pikuldorota
 
 History of modification:
 pikuldorota      7 Jan, 2017    Init version
-pikuldorota     12 Jan, 2017    Add adding and cleaning moves save and rename previous methods
+pikuldorota     12 Jan, 2017    Add adding and cleaning moves save and
+                                rename previous methods
 pikuldorota     14 Jan, 2017    Add undoing last move and removing it from xml
+pikuldorota     27 Jan, 2017    Adapt to maximum line length from PEP 8
 """
 from Field import Deck
 
@@ -12,8 +14,9 @@ from Field import Deck
 def game_state_to_xml(board, document):
     """Used to change document so it shows actual state of board"""
     root = document.documentElement
-    for child in root.getElementsByTagName("LatestCardPositions")[0].childNodes[1:]:
-        root.getElementsByTagName("LatestCardPositions")[0].removeChild(child)
+    latest_card_positions = root.getElementsByTagName("LatestCardPositions")[0]
+    for child in latest_card_positions.childNodes[1:]:
+        latest_card_positions.removeChild(child)
     for field in board:
         xml_field = document.createElement("Field")
         xml_field.appendChild(document.createTextNode(''))
@@ -27,16 +30,19 @@ def game_state_to_xml(board, document):
             xml_idx = document.createElement("Index")
             xml_idx.setAttribute("idx", str(field.get_index()))
             xml_field.appendChild(xml_idx)
-        root.getElementsByTagName("LatestCardPositions")[0].appendChild(xml_field)
+        latest_card_positions.appendChild(xml_field)
 
 
 def game_state_from_xml(board, deck, document):
     """Used to put cards on board according to saved in document state"""
-    latest = document.documentElement.getElementsByTagName("LatestCardPositions")[0]
-    for field_xml, field_board in zip(latest.getElementsByTagName("Field"), board):
+    root = document.documentElement
+    latest = root.getElementsByTagName("LatestCardPositions")[0]
+    fields = latest.getElementsByTagName("Field")
+    for field_xml, field_board in zip(fields, board):
         field_board.clear()
         for card_xml in field_xml.getElementsByTagName("Card"):
-            card_board = next((card for card in deck if card.is_xml_card(card_xml)), None)
+            card_board = next((card for card in deck
+                               if card.is_xml_card(card_xml)), None)
             field_board.add(card_board)
             if card_xml.getAttribute("is_shown") == "True":
                 card_board.show()
@@ -73,7 +79,8 @@ def undo_last_move(board, deck, document):
     hide_last = move.getAttribute("next_card_reveled")
     cards = []
     for xml_card in move.getElementsByTagName("Card"):
-        card = next((card for card in deck if card.is_xml_card(xml_card)), None)
+        card = next((card for card in deck
+                     if card.is_xml_card(xml_card)), None)
         cards.append(card)
     if cards:
         if hide_last == "True":

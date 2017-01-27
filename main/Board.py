@@ -5,18 +5,21 @@ History of modification:
 pikuldorota     11 Dec, 2016    Init version
 pikuldorota     16 Dec, 2016    Change klondike to fit with menu
 pikuldorota     17 Dec, 2016    Add fifteen puzzle
-pikuldorota     28 Dec, 2016    Add canfield and slightly change positions of some fields
+pikuldorota     28 Dec, 2016    Add canfield and slightly change positions
+                                of some fields
 pikuldorota      7 Jan, 2017    Add functions for checking if game was solved
-pikuldorota     20 Jan, 2017    Add skeletons for algiernian and osmosis patience
+pikuldorota     20 Jan, 2017    Add skeletons for algiernian and osmosis games
+pikuldorota     27 Jan, 2017    Add full support for algiernian patience
 """
-from Field import Deck, Pile, Stack, Fours
+from Field import Deck, Pile, Stack, Fours, LongDeck
 from random import shuffle
 
 
 def klondike(deck):
     """Creates board for klondike solitaire"""
-    fields = [Deck(20, 45), Pile(20, 145), Pile(94, 145), Pile(168, 145), Pile(242, 145), Pile(316, 145),
-              Pile(390, 145), Pile(463, 145), Stack(242, 45), Stack(316, 45), Stack(390, 45), Stack(463, 45)]
+    fields = [Deck(20, 45), Pile(20, 145), Pile(94, 145), Pile(168, 145),
+              Pile(242, 145), Pile(316, 145), Pile(390, 145), Pile(463, 145),
+              Stack(242, 45), Stack(316, 45), Stack(390, 45), Stack(463, 45)]
 
     return klondike_shuffle(fields, deck)
 
@@ -113,8 +116,9 @@ def fifteen_puzzle_is_finished(fields):
 
 def canfield(deck):
     """Creates board for canfield game"""
-    fields = [Stack(10, 40), Stack(100, 40), Stack(190, 40), Stack(280, 40), Deck(370, 40), Pile(10, 100),
-              Pile(100, 100), Pile(190, 100), Pile(270, 100)]
+    fields = [Stack(10, 45), Stack(100, 45), Stack(190, 45), Stack(280, 45),
+              Deck(370, 45), Pile(10, 145), Pile(100, 145), Pile(190, 145),
+              Pile(280, 145)]
     return canfield_shuffle(fields, deck)
 
 
@@ -137,9 +141,10 @@ def canfield_is_finished(fields):
 def clock(deck, ranks):
     """Creates board for clock patience"""
     fields = []
-    X = [92, 102, 112, 192, 132, 152, 392, 142, 132, 122, 112, 102, 132]
-    Y = [35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35]
-    for x, y, rank in zip(X,Y,ranks):
+    #     AS  2   3   4  5   6   7   8   9   10  W   D   K
+    X = [92, 92, 463, 92, 92, 277, 92, 92, 92, 92, 92, 277, 277]
+    Y = [260, 260, 260, 260, 260, 475, 260, 260, 260, 260, 260, 45, 260]
+    for x, y, rank in zip(X, Y, ranks):
         fields.append(Fours(x, y, rank))
     return clock_shuffle(fields, deck)
 
@@ -150,6 +155,7 @@ def clock_shuffle(fields, deck):
 
     for card in deck:
         card.hide()
+    deck[-1].show()
 
     fields[0].add(deck[:4])
     fields[1].add(deck[4:8])
@@ -174,23 +180,54 @@ def clock_is_finished(fields):
 
 
 def algiernian(deck):
-    pass
+    """Creates fields for algiernian patience"""
+    fields = [Stack(20, 45, True), Stack(83, 45, True), Stack(146, 45, True),
+              Stack(209, 45, True), Stack(272, 45), Stack(335, 45),
+              Stack(398, 45), Stack(463, 45), Pile(20, 145, True, True),
+              Pile(83, 145, True, True), Pile(146, 145, True, True),
+              Pile(209, 145, True, True), Pile(272, 145, True, True),
+              Pile(335, 145, True, True), Pile(398, 145, True, True),
+              Pile(463, 145, True, True), LongDeck(463, 475)]
+    return algiernian_shuffle(fields, deck)
 
 
 def algiernian_shuffle(fields, deck):
-    pass
+    """Puts cards on fields for algiernian"""
+    clean_and_shuffle(fields, deck)
+    for card in deck:
+        card.show()
+    fields[8].add(deck[:2])
+    fields[9].add(deck[2:4])
+    fields[10].add(deck[4:6])
+    fields[11].add(deck[6:8])
+    fields[12].add(deck[8])
+    fields[13].add(deck[9])
+    fields[14].add(deck[10])
+    fields[15].add(deck[11])
+    fields[16].add(deck[12:])
+    return fields
 
 
 def algiernian_is_finished(fields):
-    pass
+    """Checks if algiernian is finished"""
+    for field in fields[:8]:
+        if len(field.show_cards()) != 13:
+            return False
+    return True
 
 
 def osmosis(deck):
-    pass
+    fields = [Fours(92, 45), Fours(92, 152), Fours(92, 260), Fours(92, 370),
+              Stack(463, 45), Stack(463, 152), Stack(463, 260),
+              Stack(463, 370), Deck(185, 475)]  # stack to nowe pole ma byc
+    return fields
 
 
 def osmosis_shuffle(fields, deck):
-    pass
+    fields = [Fours(92, 45), Fours(92, 152), Fours(92, 260), Fours(92, 370),
+              Stack(463, 45), Stack(463, 152), Stack(463, 260),
+              Stack(463, 370), Deck(185, 475)] #stack to nowe pole ma byc
+    return fields
 
 
 def osmosis_is_finished(fields):

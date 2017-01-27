@@ -14,33 +14,37 @@ pikuldorota      7 Jan, 2017    Refactor change game option and add autosave
 pikuldorota     12 Jan, 2017    Add saving moves
 pikuldorota     14 Jan, 2017    Add undo functionality to menu
 pikuldorota     20 Jan, 2017    Add new menu options
+pikuldorota     27 Jan, 2017    Add second deck
 """
 import xml.dom.minidom as minidom
 from enum import Enum
 
 import pygame
-
+from pygame import image as image
 import Board
 from Card import Card, Suit
 from XMLutils import *
 
 
 class Application:
-    """Application is main class of the game. It provides base functionality and controls flow of the game."""
+    """
+    Application is main class of the game.
+    It provides base functionality and controls flow of the game."""
     def __init__(self):
         self.__deck = []
+        self.__double_deck = []
         pygame.init()
         self.__screen = pygame.display.set_mode((540, 580))
-        self.__new_game = pygame.image.load("../images/newgame.png")
-        self.__change_game = pygame.image.load("../images/changegame.png")
-        self.__undo = pygame.image.load("../images/undo.png")
-        self.__canfield = pygame.image.load("../images/canfield.png")
-        self.__clock = pygame.image.load("../images/clock.png")
-        self.__fifteen_puzzle = pygame.image.load("../images/fifteen_puzzle.png")
-        self.__klondike = pygame.image.load("../images/klondike.png")
-        self.__algiernian = pygame.image.load("../images/algiernian.png")
-        self.__osmosis = pygame.image.load("../images/osmosis.png")
-        pygame.display.set_icon(pygame.image.load(r"../images/icon.png"))
+        self.__new_game = image.load("../images/newgame.png")
+        self.__change_game = image.load("../images/changegame.png")
+        self.__undo = image.load("../images/undo.png")
+        self.__canfield = image.load("../images/canfield.png")
+        self.__clock = image.load("../images/clock.png")
+        self.__fifteen_puzzle = image.load("../images/fifteen_puzzle.png")
+        self.__klondike = image.load("../images/klondike.png")
+        self.__algiernian = image.load("../images/algiernian.png")
+        self.__osmosis = image.load("../images/osmosis.png")
+        pygame.display.set_icon(image.load("../images/icon.png"))
         pygame.display.set_caption("Patience")
         self.__done = False
         self.__board = []
@@ -55,24 +59,31 @@ class Application:
         for sui in Suit:
             for rank in self.__ranks:
                 self.__deck.append(Card(sui, rank, 20, 20))
+                self.__double_deck.append(self.__deck[-1])
+                self.__double_deck.append(Card(sui, rank, 20, 20))
 
     def load_fields(self, chosen_play):
         """Loads chosen board"""
-        if self.__saved:
+        if self.__saved and chosen_play != "algiernian":
             game_state_to_xml(self.__board, self.__saved)
-            with open("../save_files/{}.xml".format(self.__chosen_play), 'w') as f:
+            with open("../save_files/{}.xml".format(self.__chosen_play),
+                      'w') as f:
                 self.__saved.writexml(f)
         self.__chosen_play = chosen_play
         self.__activeCard = []
-        for card in self.__deck:
+        for card in self.__deck + self.__double_deck:
             card.hide()
         if chosen_play == "clock":
-            self.__board = getattr(Board, chosen_play)(self.__deck, self.__ranks)
+            self.__board = getattr(Board, chosen_play)(self.__deck,
+                                                       self.__ranks)
+        elif chosen_play == "algiernian":
+            self.__board = getattr(Board, chosen_play)(self.__double_deck)
         else:
             self.__board = getattr(Board, chosen_play)(self.__deck)
-        self.__saved = minidom.parse("../save_files/{}.xml".format(chosen_play))
+        self.__saved = minidom.parse("../save_files/{}.xml"
+                                     .format(chosen_play))
         latest = self.__saved.getElementsByTagName("LatestCardPositions")[0]
-        if len(latest.getElementsByTagName("Field")):
+        if len(latest.getElementsByTagName("Field")) and self.__chosen_play != "algiernian":
             game_state_from_xml(self.__board, self.__deck, self.__saved)
 
     def remove_from_fields(self, card):
@@ -110,7 +121,8 @@ class Application:
                         if took:
                             break
                     fiel.add(cards)
-                    add_move_to_xml(i, self.__board.index(fiel), cards, reveled, self.__saved)
+                    add_move_to_xml(i, self.__board.index(fiel), cards,
+                                    reveled, self.__saved)
                     self.__activeCard = []
                 else:
                     self.__activeCard = cards
@@ -118,14 +130,15 @@ class Application:
             else:
                 if fiel is not None:
                     if isinstance(fiel, Deck):
-                        add_move_to_xml(self.__board.index(fiel), self.__board.index(fiel),
+                        add_move_to_xml(self.__board.index(fiel),
+                                        self.__board.index(fiel),
                                         [], False, self.__saved)
                     self.__activeCard = []
                     return True
         return False
 
     def check_menu(self):
-        """Determines if one of buttons where clicked. If one was then proceed with action"""
+        """Determines if one of menu options were chosen and handles action"""
         mouse_position = pygame.mouse.get_pos()
         if self.__to_be_changed:
             rect = pygame.Rect(4, 1, 88, 33)
@@ -171,7 +184,14 @@ class Application:
                 for card in self.__deck:
                     card.hide()
                 self.__activeCard = []
-                self.__board = getattr(Board, self.__chosen_play + "_shuffle")(self.__board, self.__deck)
+                if self.__chosen_play == "algiernian":
+                    self.__board = getattr(Board, self.__chosen_play +
+                                           "_shuffle")(self.__board,
+                                                       self.__double_deck)
+                else:
+                    self.__board = getattr(Board, self.__chosen_play +
+                                           "_shuffle")(self.__board,
+                                                       self.__deck)
                 return True
 
             "Change game"
@@ -191,7 +211,8 @@ class Application:
 
     def check_is_finished(self):
         """After each move checks if patience has been solved"""
-        check = getattr(Board, self.__chosen_play + "_is_finished")(self.__board)
+        check = getattr(Board, self.__chosen_play + "_is_finished")\
+            (self.__board)
         if check:
             myfont = pygame.font.SysFont("sans-serif", 40)
             label = myfont.render("Congratulations!", 1, (255, 255, 255))
@@ -219,7 +240,7 @@ class Application:
                                 for card in self.__activeCard:
                                     card.change_active(False)
                             self.__activeCard = []
-                        for card in self.__deck:
+                        for card in self.__deck + self.__double_deck:
                             card.change_active(False)
                         for card in self.__activeCard:
                             card.change_active(True)
@@ -231,7 +252,8 @@ class Application:
             f.write(self.__chosen_play)
         if self.__saved:
             game_state_to_xml(self.__board, self.__saved)
-            with open("../save_files/{}.xml".format(self.__chosen_play), 'w') as f:
+            with open("../save_files/{}.xml".format(self.__chosen_play),
+                      'w') as f:
                 self.__saved.writexml(f)
 
 

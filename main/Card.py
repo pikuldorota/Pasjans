@@ -5,11 +5,15 @@ History of modification:
 pikuldorota     16 Nov, 2016    Init version
 pikuldorota     26 Nov, 2016    Add card coordinates
 pikuldorota      5 Dec, 2016    Change reaction to move
-pikuldorota      6 Dec, 2016    Add option to show both front and back of the card
-pikuldorota     11 Dec, 2016    Refactor it to make all class fields private, getters and setters created for them
+pikuldorota      6 Dec, 2016    Add option to show both front and back
+                                of the card
+pikuldorota     11 Dec, 2016    Refactor it to make all class fields private,
+                                getters and setters created for them
 pikuldorota     16 Dec, 2016    Add useful getters and methods to compare cards
-pikuldorota     17 Dec, 2016    Replace is_AS function with more useful rank function
+pikuldorota     17 Dec, 2016    Replace is_AS function with more useful
+                                rank function
 pikuldorota      7 Jan, 2017    Add is_xml_card function
+pikuldorota     27 Jan, 2017    Adapt to maximum line length from PEP 8
 """
 import pygame
 from enum import Enum
@@ -18,7 +22,7 @@ from Field import back
 
 
 class Suit(Enum):
-    """It shows suits for cards and also their colours. They are in sequence spades, clubs, diamonds, hearts"""
+    """It shows suits for cards and also their colours."""
     pik = "black"
     trefl = "BLACK"
     karo = "red"
@@ -30,7 +34,8 @@ class Card(pygame.sprite.Sprite):
     def __init__(self, sui, rank, x, y):
         self.__suit = sui
         self.__rank = rank
-        self.__front = pygame.image.load("..\images\{0}_{1}.png".format(rank.name, sui.name))
+        self.__front = pygame.image.load("..\images\{0}_{1}.png"
+                                         .format(rank.name, sui.name))
         self.__x = x
         self.__y = y
         self.__isActive = False
@@ -63,7 +68,7 @@ class Card(pygame.sprite.Sprite):
         self.__isActive = is_active
 
     def is_active(self):
-        """Returns true when card is now chosen to be used and false otherwise"""
+        """Returns true when card is chosen to be used and false otherwise"""
         return self.__isActive
 
     def is_shown(self):
