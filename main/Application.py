@@ -15,6 +15,7 @@ pikuldorota     12 Jan, 2017    Add saving moves
 pikuldorota     14 Jan, 2017    Add undo functionality to menu
 pikuldorota     20 Jan, 2017    Add new menu options
 pikuldorota     27 Jan, 2017    Add second deck
+pikuldorota     28 Jan, 2017    Collect names of double decked games
 """
 import xml.dom.minidom as minidom
 from enum import Enum
@@ -25,7 +26,7 @@ import Board
 from Card import Card, Suit
 from XMLutils import *
 
-
+double_deck_games = ["algiernian", "natali"]
 class Application:
     """
     Application is main class of the game.
@@ -39,7 +40,7 @@ class Application:
         self.__change_game = image.load("../images/changegame.png")
         self.__undo = image.load("../images/undo.png")
         self.__canfield = image.load("../images/canfield.png")
-        self.__clock = image.load("../images/clock.png")
+        self.__natali = image.load("../images/natali.png")
         self.__fifteen_puzzle = image.load("../images/fifteen_puzzle.png")
         self.__klondike = image.load("../images/klondike.png")
         self.__algiernian = image.load("../images/algiernian.png")
@@ -64,7 +65,7 @@ class Application:
 
     def load_fields(self, chosen_play):
         """Loads chosen board"""
-        if self.__saved and chosen_play != "algiernian":
+        if self.__saved and chosen_play not in double_deck_games:
             game_state_to_xml(self.__board, self.__saved)
             with open("../save_files/{}.xml".format(self.__chosen_play),
                       'w') as f:
@@ -73,17 +74,15 @@ class Application:
         self.__activeCard = []
         for card in self.__deck + self.__double_deck:
             card.hide()
-        if chosen_play == "clock":
-            self.__board = getattr(Board, chosen_play)(self.__deck,
-                                                       self.__ranks)
-        elif chosen_play == "algiernian":
+        if chosen_play in double_deck_games:
             self.__board = getattr(Board, chosen_play)(self.__double_deck)
         else:
             self.__board = getattr(Board, chosen_play)(self.__deck)
         self.__saved = minidom.parse("../save_files/{}.xml"
                                      .format(chosen_play))
         latest = self.__saved.getElementsByTagName("LatestCardPositions")[0]
-        if len(latest.getElementsByTagName("Field")) and self.__chosen_play != "algiernian":
+        if len(latest.getElementsByTagName("Field")) and \
+                self.__chosen_play not in double_deck_games:
             game_state_from_xml(self.__board, self.__deck, self.__saved)
 
     def remove_from_fields(self, card):
@@ -100,10 +99,10 @@ class Application:
         if self.__to_be_changed:
             self.__screen.blit(self.__algiernian, (4, 1))
             self.__screen.blit(self.__canfield, (95, 1))
-            self.__screen.blit(self.__clock, (182, 1))
-            self.__screen.blit(self.__fifteen_puzzle, (254, 1))
-            self.__screen.blit(self.__klondike, (371, 1))
-            self.__screen.blit(self.__osmosis, (460, 1))
+            self.__screen.blit(self.__fifteen_puzzle, (182, 1))
+            self.__screen.blit(self.__klondike, (297, 1))
+            self.__screen.blit(self.__natali, (384, 1))
+            self.__screen.blit(self.__osmosis, (454, 1))
         else:
             self.__screen.blit(self.__new_game, (5, 0))
             self.__screen.blit(self.__change_game, (119, 0))
@@ -153,25 +152,25 @@ class Application:
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(182, 1, 67, 33)
-            if rect.collidepoint(mouse_position):
-                self.load_fields("clock")
-                self.__to_be_changed = False
-                return True
-
-            rect = pygame.Rect(254, 1, 112, 33)
+            rect = pygame.Rect(182, 1, 112, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("fifteen_puzzle")
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(371, 1, 84, 33)
+            rect = pygame.Rect(297, 1, 84, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("klondike")
                 self.__to_be_changed = False
                 return True
 
-            rect = pygame.Rect(460, 1, 77, 33)
+            rect = pygame.Rect(384, 1, 67, 33)
+            if rect.collidepoint(mouse_position):
+                self.load_fields("natali")
+                self.__to_be_changed = False
+                return True
+
+            rect = pygame.Rect(454, 1, 77, 33)
             if rect.collidepoint(mouse_position):
                 self.load_fields("osmosis")
                 self.__to_be_changed = False
@@ -184,7 +183,7 @@ class Application:
                 for card in self.__deck:
                     card.hide()
                 self.__activeCard = []
-                if self.__chosen_play == "algiernian":
+                if self.__chosen_play in double_deck_games:
                     self.__board = getattr(Board, self.__chosen_play +
                                            "_shuffle")(self.__board,
                                                        self.__double_deck)
