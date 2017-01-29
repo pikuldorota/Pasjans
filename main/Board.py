@@ -258,7 +258,7 @@ def osmosis_shuffle(fields, deck):
 def osmosis_is_finished(fields):
     """Checks if osmosi has been solved"""
     for field in fields[4:8]:
-        if len(fields.show_cards()) != 13:
+        if len(field.show_cards()) != 13:
             return False
     return True
 

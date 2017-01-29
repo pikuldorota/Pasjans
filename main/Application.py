@@ -9,13 +9,15 @@ pikuldorota      6 Dec, 2016    Create and show Klondike
 pikuldorota     11 Dec, 2016    Change handling of mouse click
 pikuldorota     16 Dec, 2016    Add moving multiply cards
 pikuldorota     17 Dec, 2016    Add beta menu
-pikuldorota     28 Dec, 2016    Clean activeCard field when loading new game or shuffling cards
+pikuldorota     28 Dec, 2016    Clean activeCard field when loading new game
+                                or shuffling cards
 pikuldorota      7 Jan, 2017    Refactor change game option and add autosave
 pikuldorota     12 Jan, 2017    Add saving moves
 pikuldorota     14 Jan, 2017    Add undo functionality to menu
 pikuldorota     20 Jan, 2017    Add new menu options
 pikuldorota     27 Jan, 2017    Add second deck
 pikuldorota     28 Jan, 2017    Collect names of double decked games
+pikuldorota     29 Jan, 2017    Support for save for double decked games
 """
 import xml.dom.minidom as minidom
 from enum import Enum
@@ -27,6 +29,8 @@ from Card import Card, Suit
 from XMLutils import *
 
 double_deck_games = ["algiernian", "natali"]
+
+
 class Application:
     """
     Application is main class of the game.
@@ -65,7 +69,7 @@ class Application:
 
     def load_fields(self, chosen_play):
         """Loads chosen board"""
-        if self.__saved and chosen_play not in double_deck_games:
+        if self.__saved:
             game_state_to_xml(self.__board, self.__saved)
             with open("../save_files/{}.xml".format(self.__chosen_play),
                       'w') as f:
@@ -82,8 +86,12 @@ class Application:
                                      .format(chosen_play))
         latest = self.__saved.getElementsByTagName("LatestCardPositions")[0]
         if len(latest.getElementsByTagName("Field")) and \
-                self.__chosen_play not in double_deck_games:
-            game_state_from_xml(self.__board, self.__deck, self.__saved)
+                self.__chosen_play:
+            if chosen_play in double_deck_games:
+                game_state_from_xml(self.__board, self.__double_deck[:],
+                                    self.__saved)
+            else:
+                game_state_from_xml(self.__board, self.__deck[:], self.__saved)
 
     def remove_from_fields(self, card):
         """Used to clear board from cards"""
@@ -110,28 +118,28 @@ class Application:
         pygame.display.update()
 
     def check_cards(self):
-        """Check if click occured on any card and performs update"""
+        """Check if click occurred on any card and performs update"""
         for field in self.__board:
             (cards, fiel) = field.update(self.__activeCard)
             if cards:
                 if fiel is not None:
                     for i, pole in enumerate(self.__board):
-                        (took, reveled) = pole.take(cards)
+                        (took, reveled, subfield) = pole.take(cards)
                         if took:
                             break
                     fiel.add(cards)
                     add_move_to_xml(i, self.__board.index(fiel), cards,
-                                    reveled, self.__saved)
+                                    reveled, subfield, self.__saved)
                     self.__activeCard = []
                 else:
                     self.__activeCard = cards
                 return True
             else:
                 if fiel is not None:
-                    if isinstance(fiel, Deck):
+                    if isinstance(fiel, Deck) or isinstance(fiel, LongDeck):
                         add_move_to_xml(self.__board.index(fiel),
                                         self.__board.index(fiel),
-                                        [], False, self.__saved)
+                                        [], False, -1, self.__saved)
                     self.__activeCard = []
                     return True
         return False
@@ -204,6 +212,8 @@ class Application:
             rect = pygame.Rect(250, 0, 76, 33)
             if rect.collidepoint(mouse_position):
                 undo_last_move(self.__board, self.__deck, self.__saved)
+                for card in self.__activeCard:
+                    card.change_active(False)
                 self.__activeCard = []
                 return True
         return False
@@ -214,7 +224,7 @@ class Application:
             (self.__board)
         if check:
             myfont = pygame.font.SysFont("sans-serif", 40)
-            label = myfont.render("Congratulations!", 1, (255, 255, 255))
+            label = myfont.render("Congratulations!", 1, (0, 255, 0))
             self.__screen.blit(label, (110, 200))
 
     def execute(self):

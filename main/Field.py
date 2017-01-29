@@ -16,6 +16,7 @@ pikuldorota     14 Jan, 2017    Add hiding last card after undoing last move
                                 and remove suit field from stack
 pikuldorota     27 Jan, 2017    Add subfields and longdeck
 pikuldorota     28 Jan, 2017    Add cascade field
+pikuldorota     29 Jan, 2017    Add support for undoing moves from subfield
 """
 import pygame
 from pygame.transform import smoothscale
@@ -45,7 +46,7 @@ class Field:
             if card in self._cards:
                 self._cards.remove(card)
                 took = True
-        return took, revel
+        return took, revel, -1
 
     def add(self, cards):
         """This method is used to add cards to field when shuffling"""
@@ -146,15 +147,22 @@ class Deck(Field):
         revel = False
         if len(card) == 1 and card[0] in self._cards:
             self.__index -= 1
-            (took, revel) = super().take(card)
-        return took, revel
+            (took, revel, idx) = super().take(card)
+        return took, revel, -1
 
     def add(self, cards):
         """Adds and shows cards to field"""
+        if not cards:
+            return
         if isinstance(cards, list):
-            for card in cards:
-                card.show()
-            super().add(cards)
+            if len(cards) == 1:
+                cards[0].show()
+                self.__index+=1
+                self._cards.insert(self.__index, cards[0])
+            else:
+                for card in cards:
+                    card.show()
+                super().add(cards)
         else:
             cards.show()
             self.__index += 1
@@ -231,10 +239,10 @@ class Pile(Field):
 
     def take(self, card):
         """Removes asked card from field"""
-        (took, revel) = super().take(card)
+        (took, revel, idx) = super().take(card)
         if took and self._cards:
             revel = not self._cards[-1].is_shown()
-        return took, revel
+        return took, revel, idx
 
 
 class Stack(Field):
@@ -279,7 +287,10 @@ class Stack(Field):
                     return [card], self
                 return [], self
         else:
-            return [self._cards[-1]], None
+            if self._cards:
+                return [self._cards[-1]], None
+            else:
+                return [], self
 
     def draw(self, screen):
         """Used to show cards on the screen"""
@@ -346,11 +357,11 @@ class Fours(Field):
 
     def take(self, cards, revel=False):
         """Takes cards from board and shows the previous one"""
-        (took, revel) = super().take(cards)
+        (took, revel, idx) = super().take(cards)
         if took and self._cards:
             revel = not self._cards[-1].is_shown()
             self._cards[-1].show()
-        return took, revel
+        return took, revel, idx
 
 
 class Subfield(Field):
@@ -365,7 +376,9 @@ class Subfield(Field):
 
     def get(self):
         """Used to get last card from field."""
-        return [self._cards[-1]], None
+        if self._cards:
+            return [self._cards[-1]], None
+        return [], self
 
 
 class LongDeck(Field):
@@ -404,7 +417,7 @@ class LongDeck(Field):
             else:
                 for i in range(6):
                     self.__subfields[i].add(self._cards[i*2:i*2+2])
-                self._cards = self._cards[:-12]
+                self._cards = self._cards[12:]
             return [], self
         for i in range(6):
             if self.clicked(x_moved=-i*74-74):
@@ -418,11 +431,15 @@ class LongDeck(Field):
         if cards[0] in self._cards:
             self._cards.remove(cards[0])
             return True, False
+        took = False
+        idx = -1
         for subfield in self.__subfields:
-            took, revel = subfield.take(cards, revel)
-            if took:
-                return took, revel
-        return False, revel
+            if cards[0] in subfield.show_cards():
+                subfield.take(cards)
+                took = True
+                idx = self.__subfields.index(subfield)
+                break
+        return took, revel, idx
 
     def clear(self):
         """Used to clear deck and all the subfields"""
@@ -430,12 +447,24 @@ class LongDeck(Field):
         for subfield in self.__subfields:
             subfield.clear()
 
-    def show_cards(self):
-        """Used to return all cards from deck and the subfields"""
-        cards = self._cards
-        for subfield in self.__subfields:
-            cards.extend(subfield.show_cards())
-        return cards
+    def show_subfields(self):
+        """Used to read from subfields"""
+        return self.__subfields
+
+    def undo(self):
+        """Used to undo clicking on deck"""
+        if self._cards:
+            idx = 6
+        else:
+            idx = 4
+        cards = []
+        for subfield in self.__subfields[:idx]:
+            card = subfield.get()[0][0]
+            subfield.take(subfield.get()[0])
+            cards.append(subfield.get()[0][0])
+            subfield.take(subfield.get()[0])
+            cards.append(card)
+        self._cards = cards + self._cards
 
 
 class UnpickablePile(Pile):
