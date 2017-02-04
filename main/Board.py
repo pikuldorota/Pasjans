@@ -8,16 +8,16 @@ pikuldorota     17 Dec, 2016    Add fifteen puzzle
 pikuldorota     28 Dec, 2016    Add canfield and slightly change positions
                                 of some fields
 pikuldorota      7 Jan, 2017    Add functions for checking if game was solved
-pikuldorota     20 Jan, 2017    Add skeletons for algiernian and osmosis games
-pikuldorota     27 Jan, 2017    Add full support for algiernian patience
+pikuldorota     20 Jan, 2017    Add skeletons for algerian and osmosis games
+pikuldorota     27 Jan, 2017    Add full support for algerian patience
 pikuldorota     28 Jan, 2017    Finish last functions
 """
-from Field import Deck, Pile, Stack, Fours, LongDeck, UnpickablePile, Cascade
+from Field import Deck, Pile, Stack, Fours, LongDeck, UnputtablePile, Cascade
 from random import shuffle
 
 
-def algiernian(deck):
-    """Creates fields for algiernian patience"""
+def algerian(deck):
+    """Creates fields for algerian patience"""
     fields = [Stack(20, 45, True), Stack(83, 45, True), Stack(146, 45, True),
               Stack(209, 45, True), Stack(272, 45), Stack(335, 45),
               Stack(398, 45), Stack(463, 45), Pile(20, 145, True, True),
@@ -25,11 +25,11 @@ def algiernian(deck):
               Pile(209, 145, True, True), Pile(272, 145, True, True),
               Pile(335, 145, True, True), Pile(398, 145, True, True),
               Pile(463, 145, True, True), LongDeck(463, 475)]
-    return algiernian_shuffle(fields, deck)
+    return algerian_shuffle(fields, deck)
 
 
-def algiernian_shuffle(fields, deck):
-    """Puts cards on fields for algiernian"""
+def algerian_shuffle(fields, deck):
+    """Puts cards on fields for algerian"""
     clean_and_shuffle(fields, deck)
     for card in deck:
         card.show()
@@ -45,8 +45,8 @@ def algiernian_shuffle(fields, deck):
     return fields
 
 
-def algiernian_is_finished(fields):
-    """Checks if algiernian is finished"""
+def algerian_is_finished(fields):
+    """Checks if algerian is finished"""
     for field in fields[:8]:
         if len(field.show_cards()) != 13:
             return False
@@ -57,7 +57,7 @@ def canfield(deck):
     """Creates board for canfield game"""
     fields = [Stack(10, 45), Stack(100, 45), Stack(190, 45), Stack(280, 45),
               Deck(370, 45), Pile(10, 145), Pile(100, 145), Pile(190, 145),
-              Pile(280, 145), UnpickablePile(370, 145)]
+              Pile(280, 145), UnputtablePile(370, 145)]
     return canfield_shuffle(fields, deck)
 
 
@@ -211,6 +211,7 @@ def natali_shuffle(fields, deck):
     fields[14].add(deck[33:35])
     fields[15].add(deck[35])
     fields[16].add(deck[36:])
+    fields[16].reset()
     return fields
 
 

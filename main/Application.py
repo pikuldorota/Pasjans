@@ -28,7 +28,7 @@ import Board
 from Card import Card, Suit
 from XMLutils import *
 
-double_deck_games = ["algiernian", "natali"]
+double_deck_games = ["algerian", "natali"]
 
 
 class Application:
@@ -47,7 +47,7 @@ class Application:
         self.__natali = image.load("../images/natali.png")
         self.__fifteen_puzzle = image.load("../images/fifteen_puzzle.png")
         self.__klondike = image.load("../images/klondike.png")
-        self.__algiernian = image.load("../images/algiernian.png")
+        self.__algerian = image.load("../images/algerian.png")
         self.__osmosis = image.load("../images/osmosis.png")
         pygame.display.set_icon(image.load("../images/icon.png"))
         pygame.display.set_caption("Patience")
@@ -105,7 +105,7 @@ class Application:
         for field in self.__board:
             field.draw(self.__screen)
         if self.__to_be_changed:
-            self.__screen.blit(self.__algiernian, (4, 1))
+            self.__screen.blit(self.__algerian, (4, 1))
             self.__screen.blit(self.__canfield, (95, 1))
             self.__screen.blit(self.__fifteen_puzzle, (182, 1))
             self.__screen.blit(self.__klondike, (297, 1))
@@ -124,12 +124,12 @@ class Application:
             if cards:
                 if fiel is not None:
                     for i, pole in enumerate(self.__board):
-                        (took, reveled, subfield) = pole.take(cards)
+                        (took, revealed, subfield) = pole.take(cards)
                         if took:
                             break
                     fiel.add(cards)
                     add_move_to_xml(i, self.__board.index(fiel), cards,
-                                    reveled, subfield, self.__saved)
+                                    revealed, subfield, self.__saved)
                     self.__activeCard = []
                 else:
                     self.__activeCard = cards
@@ -150,7 +150,7 @@ class Application:
         if self.__to_be_changed:
             rect = pygame.Rect(4, 1, 88, 33)
             if rect.collidepoint(mouse_position):
-                self.load_fields("algiernian")
+                self.load_fields("algerian")
                 self.__to_be_changed = False
                 return True
 
@@ -211,7 +211,7 @@ class Application:
             "Undo"
             rect = pygame.Rect(250, 0, 76, 33)
             if rect.collidepoint(mouse_position):
-                undo_last_move(self.__board, self.__deck, self.__saved)
+                undo_last_move(self.__board, self.__saved)
                 for card in self.__activeCard:
                     card.change_active(False)
                 self.__activeCard = []

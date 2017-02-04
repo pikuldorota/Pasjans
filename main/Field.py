@@ -39,14 +39,14 @@ class Field:
         if self._cards:
             self._cards[-1].hide()
 
-    def take(self, cards, revel=False):
+    def take(self, cards, reveal=False):
         """This method is used to remove specified card from the field"""
         took = False
         for card in cards:
             if card in self._cards:
                 self._cards.remove(card)
                 took = True
-        return took, revel, -1
+        return took, reveal, -1
 
     def add(self, cards):
         """This method is used to add cards to field when shuffling"""
@@ -144,11 +144,11 @@ class Deck(Field):
     def take(self, card):
         """Removes card from field and changes index to show previous card"""
         took = False
-        revel = False
+        reveal = False
         if len(card) == 1 and card[0] in self._cards:
             self.__index -= 1
-            (took, revel, idx) = super().take(card)
-        return took, revel, -1
+            (took, reveal, idx) = super().take(card)
+        return took, reveal, -1
 
     def add(self, cards):
         """Adds and shows cards to field"""
@@ -239,10 +239,10 @@ class Pile(Field):
 
     def take(self, card):
         """Removes asked card from field"""
-        (took, revel, idx) = super().take(card)
+        (took, reveal, idx) = super().take(card)
         if took and self._cards:
-            revel = not self._cards[-1].is_shown()
-        return took, revel, idx
+            reveal = not self._cards[-1].is_shown()
+        return took, reveal, idx
 
 
 class Stack(Field):
@@ -355,13 +355,13 @@ class Fours(Field):
                 card.draw(screen)
                 i += 1
 
-    def take(self, cards, revel=False):
+    def take(self, cards, reveal=False):
         """Takes cards from board and shows the previous one"""
-        (took, revel, idx) = super().take(cards)
+        (took, reveal, idx) = super().take(cards)
         if took and self._cards:
-            revel = not self._cards[-1].is_shown()
+            reveal = not self._cards[-1].is_shown()
             self._cards[-1].show()
-        return took, revel, idx
+        return took, reveal, idx
 
 
 class Subfield(Field):
@@ -424,10 +424,10 @@ class LongDeck(Field):
                 return self.__subfields[i].get()
         return [], None
 
-    def take(self, cards, revel=False):
+    def take(self, cards, reveal=False):
         """Used to remove cards from deck and all the subfields"""
         if len(cards) != 1:
-            return False, revel
+            return False, reveal
         if cards[0] in self._cards:
             self._cards.remove(cards[0])
             return True, False
@@ -439,7 +439,7 @@ class LongDeck(Field):
                 took = True
                 idx = self.__subfields.index(subfield)
                 break
-        return took, revel, idx
+        return took, reveal, idx
 
     def clear(self):
         """Used to clear deck and all the subfields"""
@@ -467,8 +467,8 @@ class LongDeck(Field):
         self._cards = cards + self._cards
 
 
-class UnpickablePile(Pile):
-    """This class represents unpickable pile."""
+class UnputtablePile(Pile):
+    """This class represents unputtable pile."""
     def update(self, cards):
         """Used to handle mouse click"""
         if self.clicked(y_moved=15*len(self._cards[:-1])):

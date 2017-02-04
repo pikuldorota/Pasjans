@@ -11,7 +11,6 @@ pikuldorota     28 Jan, 2017    Add support for double decked games
                                 and subfields
 """
 from Field import Deck, LongDeck
-from Application import double_deck_games
 
 
 def game_state_to_xml(board, document):
@@ -79,14 +78,15 @@ def game_state_from_xml(board, deck, document):
                     card_board.hide()
 
 
-def add_move_to_xml(idx_from, idx_to, cards, next_card_reveled, subfield, document):
+def add_move_to_xml(idx_from, idx_to, cards, next_card_revealed,
+                    subfield, document):
     """Used to save in memory information about each move and click"""
     moves = document.documentElement.getElementsByTagName("Moves")[0]
     xml_move = document.createElement("Move")
     xml_move.appendChild(document.createTextNode(''))
     xml_move.setAttribute("field_index_from", str(idx_from))
     xml_move.setAttribute("field_index_to", str(idx_to))
-    xml_move.setAttribute("next_card_reveled", str(next_card_reveled))
+    xml_move.setAttribute("next_card_revealed", str(next_card_revealed))
     xml_move.setAttribute("subfield", str(subfield))
     for card in cards:
         xml_card = document.createElement("Card")
@@ -96,7 +96,7 @@ def add_move_to_xml(idx_from, idx_to, cards, next_card_reveled, subfield, docume
     moves.appendChild(xml_move)
 
 
-def undo_last_move(board, deck, document):
+def undo_last_move(board, document):
     """Used to undo last move and to remove it from xml"""
     moves = document.documentElement.getElementsByTagName("Moves")[0]
     if not moves.getElementsByTagName("Move"):
@@ -104,7 +104,7 @@ def undo_last_move(board, deck, document):
     move = moves.getElementsByTagName("Move")[-1]
     field_from = board[int(move.getAttribute("field_index_from"))]
     field_to = board[int(move.getAttribute("field_index_to"))]
-    hide_last = move.getAttribute("next_card_reveled")
+    hide_last = move.getAttribute("next_card_revealed")
     subfield = int(move.getAttribute("subfield"))
     if subfield >= 0:
         field_from = field_from.show_subfields()[subfield]
