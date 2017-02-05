@@ -232,7 +232,7 @@ def osmosis(deck):
     fields = [Fours(92, 45, True), Fours(92, 152, True), Fours(92, 260, True),
               Fours(92, 370, True), cascade1, cascade2, cascade3, cascade4,
               Deck(185, 475)]
-    return fields
+    return osmosis_shuffle(fields, deck)
 
 
 def osmosis_shuffle(fields, deck):

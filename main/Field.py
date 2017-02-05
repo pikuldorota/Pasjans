@@ -29,6 +29,7 @@ as_field = pygame.image.load(r"..\images\as.png")
 
 class Field:
     """This is superclass for all types of fields used in game."""
+
     def __init__(self, x, y):
         self._cards = []
         self._x = x
@@ -75,7 +76,7 @@ class Field:
             if y_resized:
                 for i in range(y_resized):
                     rect = pygame.Rect(self._x + x_moved,
-                                       self._y + y_moved + i*15, 57, 15)
+                                       self._y + y_moved + i * 15, 57, 15)
                     if rect.collidepoint(mouse_position):
                         return i + 1
                 return y_resized + 1
@@ -93,7 +94,8 @@ class Field:
 
 class Deck(Field):
     """This class represents deck field. For details look in documentation"""
-    def __init__(self, x, y, vertical=False):
+
+    def __init__(self, x, y):
         Field.__init__(self, x, y)
         self.__index = -1
 
@@ -157,7 +159,7 @@ class Deck(Field):
         if isinstance(cards, list):
             if len(cards) == 1:
                 cards[0].show()
-                self.__index+=1
+                self.__index += 1
                 self._cards.insert(self.__index, cards[0])
             else:
                 for card in cards:
@@ -175,6 +177,7 @@ class Deck(Field):
 
 class Pile(Field):
     """This class represents pile field. For details look in documentation"""
+
     def __init__(self, x, y, bothway=False, samecolor=False):
         Field.__init__(self, x, y)
         self.__bothway = bothway
@@ -197,7 +200,7 @@ class Pile(Field):
                 return self.put(cards)
             else:
                 if self._cards:
-                    return self._cards[idx-1+i:], None
+                    return self._cards[idx - 1 + i:], None
                 return [], self
         return [], None
 
@@ -212,10 +215,10 @@ class Pile(Field):
                 elif self.__bothway and self._cards[-1].suit() == \
                         cards[-1].suit() and \
                         (self._cards[-1].next_lower(cards[-1])
-                            or cards[-1].next_lower(self._cards[-1])):
+                         or cards[-1].next_lower(self._cards[-1])):
                     return cards[::-1], self
                 else:
-                    return [], self
+                    return [self._cards[-1]], None
             else:
                 return [self._cards[-1]], None
         else:
@@ -247,10 +250,11 @@ class Pile(Field):
 
 class Stack(Field):
     """This class represents stack field. For details look in documentation"""
-    def __init__(self, x, y, reversed=False):
+
+    def __init__(self, x, y, reverse=False):
         Field.__init__(self, x, y)
-        self.__reversed = reversed
-        if reversed:
+        self.__reversed = reverse
+        if reverse:
             self.__field = k_field
         else:
             self.__field = as_field
@@ -274,8 +278,10 @@ class Stack(Field):
                 if card == self._cards[-1]:
                     return [], self
                 if self._cards[-1].suit() == card.suit() and \
-                    ((card.next_lower(self._cards[-1]) and not self.__reversed) or
-                      (self._cards[-1].next_lower(card) and self.__reversed)):
+                        ((card.next_lower(
+                            self._cards[-1]) and not self.__reversed) or
+                         (self._cards[-1].next_lower(
+                                 card) and self.__reversed)):
                     card.change(self._x, self._y)
                     return [card], self
                 else:
@@ -295,7 +301,8 @@ class Stack(Field):
     def draw(self, screen):
         """Used to show cards on the screen"""
         if not self._cards:
-            screen.blit(smoothscale(self.__field, (57, 89)), (self._x, self._y))
+            screen.blit(smoothscale(self.__field, (57, 89)),
+                        (self._x, self._y))
         else:
             self._cards[-1].change(self._x, self._y)
             self._cards[-1].draw(screen)
@@ -303,6 +310,7 @@ class Stack(Field):
 
 class Fours(Field):
     """This class represents fours field. For details look in documentation"""
+
     def __init__(self, x, y, unputable=False):
         Field.__init__(self, x, y)
         self.__unputable = unputable
@@ -310,23 +318,23 @@ class Fours(Field):
     def update(self, cards):
         """Used to handle mouse click"""
         if self._cards:
-            idx = self.clicked(x_moved=-(len(self._cards)-1)*22,
-                               x_resized=len(self._cards)-1)
+            idx = self.clicked(x_moved=-(len(self._cards) - 1) * 22,
+                               x_resized=len(self._cards) - 1)
         else:
             idx = self.clicked()
-        if idx and self._cards and not self._cards[idx-1].is_shown():
+        if idx and self._cards and not self._cards[idx - 1].is_shown():
             return [], None
-        if idx and self._cards and self._cards[idx-1].is_shown() and \
+        if idx and self._cards and self._cards[idx - 1].is_shown() and \
                 self.__unputable:
-            return self._cards[idx-1:], None
+            return self._cards[idx - 1:], None
         if idx:
             if cards:
                 return self.put(cards)
             else:
-                for card in self._cards[idx-1:]:
-                    if self._cards[idx-1].rank().name != card.rank().name:
+                for card in self._cards[idx - 1:]:
+                    if self._cards[idx - 1].rank().name != card.rank().name:
                         return [], None
-                return self._cards[idx-1:], None
+                return self._cards[idx - 1:], None
         return [], None
 
     def put(self, cards):
@@ -366,6 +374,7 @@ class Fours(Field):
 
 class Subfield(Field):
     """This class represents subfields for long deck."""
+
     def draw(self, screen):
         """Used to draw field on the screen"""
         if self._cards:
@@ -383,11 +392,12 @@ class Subfield(Field):
 
 class LongDeck(Field):
     """This class represents LongDeck. For details look in documentation."""
+
     def __init__(self, x, y):
         Field.__init__(self, x, y)
         self.__subfields = []
         for i in range(1, 7):
-            self.__subfields.append(Subfield(x-i*74, y))
+            self.__subfields.append(Subfield(x - i * 74, y))
 
     def draw(self, screen):
         """Used to draw field on the screen"""
@@ -402,25 +412,26 @@ class LongDeck(Field):
         """Used to put card on the field"""
         if isinstance(cards, list):
             for i in range(6):
-                self.__subfields[i].add(cards[i*4:i*4+4])
+                self.__subfields[i].add(cards[i * 4:i * 4 + 4])
             self._cards.extend(cards[24:])
         else:
             self._cards.append(cards)
 
+    # noinspection PyUnusedLocal
     def update(self, cards):
         """Used to handle mouse click"""
         if self.clicked():
             if len(self._cards) == 8:
                 for i in range(4):
-                    self.__subfields[i].add(self._cards[i*2:i*2+2])
+                    self.__subfields[i].add(self._cards[i * 2:i * 2 + 2])
                 self._cards = []
             else:
                 for i in range(6):
-                    self.__subfields[i].add(self._cards[i*2:i*2+2])
+                    self.__subfields[i].add(self._cards[i * 2:i * 2 + 2])
                 self._cards = self._cards[12:]
             return [], self
         for i in range(6):
-            if self.clicked(x_moved=-i*74-74):
+            if self.clicked(x_moved=-i * 74 - 74):
                 return self.__subfields[i].get()
         return [], None
 
@@ -469,15 +480,17 @@ class LongDeck(Field):
 
 class UnputtablePile(Pile):
     """This class represents unputtable pile."""
+
     def update(self, cards):
         """Used to handle mouse click"""
-        if self.clicked(y_moved=15*len(self._cards[:-1])):
+        if self.clicked(y_moved=15 * len(self._cards[:-1])):
             return [self._cards[-1]], None
         return [], None
 
 
 class Cascade(Fours):
     """Represents cascade field"""
+
     def __init__(self, x, y, previous=None):
         Fours.__init__(self, x, y)
         self.__previous = previous
@@ -485,19 +498,19 @@ class Cascade(Fours):
     def update(self, cards):
         """Used to handle mouse click"""
         if self.clicked(x_resized=len(self._cards[:-1]),
-                        x_moved=-22*len(self._cards[:-1])):
+                        x_moved=-22 * len(self._cards[:-1])):
             if not cards:
                 return [], self
             if self.__previous:
                 prev_cards = self.__previous.show_cards()
                 if next((card for card in prev_cards
-                        if card.rank().name == cards[0].rank().name), None):
+                         if card.rank().name == cards[0].rank().name), None):
                     return cards, self
                 else:
                     return [], None
             else:
                 if self._cards and self._cards[0].suit().name == \
-                  cards[0].suit().name:
+                        cards[0].suit().name:
                     return cards, self
                 elif not self._cards:
                     return cards, self

@@ -31,29 +31,32 @@ class Suit(Enum):
 
 class Card(pygame.sprite.Sprite):
     """Class for representing each card"""
+
     def __init__(self, sui, rank, x, y):
         self.__suit = sui
         self.__rank = rank
         self.__front = pygame.image.load("..\images\{0}_{1}.png"
                                          .format(rank.name, sui.name))
-        self.__x = x
-        self.__y = y
+        self._x = x
+        self._y = y
         self.__isActive = False
         self.__isShown = False
 
     def draw(self, screen):
         """Show card on the screen"""
         if self.__isActive:
-            pygame.draw.rect(screen, (245, 245, 245), (self.__x - 2, self.__y - 2, 61, 93))  # (205,133,63)
+            pygame.draw.rect(screen, (245, 245, 245), (
+                self._x - 2, self._y - 2, 61, 93))  # (205,133,63)
         if self.__isShown:
-            screen.blit(smoothscale(self.__front, (57, 89)), (self.__x, self.__y))
+            screen.blit(smoothscale(self.__front, (57, 89)),
+                        (self._x, self._y))
         else:
-            screen.blit(smoothscale(back, (57, 89)), (self.__x, self.__y))
+            screen.blit(smoothscale(back, (57, 89)), (self._x, self._y))
 
     def change(self, x, y):
         """Changes card positions"""
-        self.__x = x
-        self.__y = y
+        self._x = x
+        self._y = y
 
     def show(self):
         """Method to make card visible"""

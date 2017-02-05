@@ -128,4 +128,3 @@ def clean_moves_xml(document):
     root = document.documentElement
     for child in root.getElementsByTagName("Moves")[0].childNodes[1:]:
         root.getElementsByTagName("Moves")[0].removeChild(child)
-
